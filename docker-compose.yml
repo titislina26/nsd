@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  projectnsd:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: projectnsd-app
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./server/data:/app/server/data
+      - ./server/uploads:/app/server/uploads
+    environment:
+      - PORT=3001
+      - NODE_ENV=production
+    restart: always

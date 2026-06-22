@@ -1,0 +1,16 @@
+node_modules
+server/node_modules
+dist
+server/data/*.db
+server/data/*.db-journal
+server/uploads/*
+.git
+.gitignore
+.env
+server/.env
+README.md
+C:\Users\HYPE-R\.gemini
+.gemini
+*.log
+*.zip
+*.tar.gz
