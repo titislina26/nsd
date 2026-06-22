@@ -55,7 +55,7 @@ app.use(async (req, res, next) => {
 const distPath = path.join(__dirname, '..', 'dist')
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath))
-  app.get('*', (req, res) => {
+  app.get('*any', (req, res) => {
     if (!req.path.startsWith('/api')) {
       res.sendFile(path.join(distPath, 'index.html'))
     } else {
