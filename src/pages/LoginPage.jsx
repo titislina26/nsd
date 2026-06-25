@@ -47,17 +47,17 @@ export default function LoginPage() {
       return
     }
     try {
-      await loginUser(email)
+      await loginUser(email, password)
       navigate('/')
     } catch (err) {
-      setError(err.message || 'Gagal login. Periksa kembali email Anda.')
+      setError(err.message || 'Gagal login. Periksa kembali email atau password Anda.')
     }
   }
 
   const handleDemoLogin = async (demoEmail) => {
     setError('')
     try {
-      await loginUser(demoEmail)
+      await loginUser(demoEmail, 'password')
       navigate('/')
     } catch (err) {
       setError(err.message || 'Gagal login demo.')

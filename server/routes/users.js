@@ -115,7 +115,7 @@ router.delete('/:id', async (req, res, next) => {
 // POST /api/users/login
 router.post('/login', async (req, res, next) => {
   try {
-    const { email } = req.body
+    const { email, password } = req.body
     if (!email) {
       return res.status(400).json({ error: 'Email is required' })
     }
@@ -123,7 +123,35 @@ router.post('/login', async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ error: 'Email tidak terdaftar' })
     }
+    if (user.password && user.password !== password) {
+      return res.status(401).json({ error: 'Password salah' })
+    }
     res.json(user)
+  } catch (error) {
+    next(error)
+  }
+})
+
+// POST /api/users/:id/password
+router.post('/:id/password', async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body
+    if (!newPassword) {
+      return res.status(400).json({ error: 'Password baru wajib diisi' })
+    }
+    
+    const user = await queryOne('SELECT * FROM users WHERE id = ?', [req.params.id])
+    if (!user) {
+      return res.status(404).json({ error: 'User tidak ditemukan' })
+    }
+    
+    // If the user already has a password set, verify it
+    if (user.password && user.password !== currentPassword) {
+      return res.status(400).json({ error: 'Password saat ini salah' })
+    }
+    
+    await execute('UPDATE users SET password = ? WHERE id = ?', [newPassword, req.params.id])
+    res.json({ message: 'Password berhasil diubah' })
   } catch (error) {
     next(error)
   }

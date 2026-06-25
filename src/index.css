@@ -1480,6 +1480,11 @@ a:hover {
 
 /* ── Print Styles ── */
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
   body {
     background: white !important;
     color: black !important;
@@ -1506,32 +1511,32 @@ a:hover {
     display: block !important;
   }
 
-  /* Kwitansi — Landscape */
-  .print-landscape {
-    page-break-before: always;
-  }
-
-  @page landscape {
-    size: landscape;
-    margin: 10mm;
-  }
-
-  .print-landscape {
-    page: landscape;
-  }
-
-  /* Cover — Portrait */
+  /* Kwitansi — Portrait */
   .print-portrait {
     page-break-before: always;
   }
 
-  @page portrait {
+  @page portrait-page {
     size: A4 portrait;
-    margin: 15mm;
+    margin: 8mm;
   }
 
   .print-portrait {
-    page: portrait;
+    page: portrait-page;
+  }
+
+  /* Cover — Landscape */
+  .print-landscape {
+    page-break-before: always;
+  }
+
+  @page landscape-page {
+    size: A4 landscape;
+    margin: 8mm;
+  }
+
+  .print-landscape {
+    page: landscape-page;
   }
 
   /* Remove decorative elements */

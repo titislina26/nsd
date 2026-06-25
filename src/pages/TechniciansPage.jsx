@@ -127,10 +127,10 @@ export default function TechniciansPage() {
   }
 
   const downloadTechTemplate = () => {
-    const headers = ['Nama']
+    const headers = ['Nama', 'NIK']
     const sampleData = [
-      ['Yusup Ubaidillah'],
-      ['Ahmad Fauzan']
+      ['Yusup Ubaidillah', '3201234567890001'],
+      ['Ahmad Fauzan', '3201234567890002']
     ]
     const worksheet = XLSX.utils.aoa_to_sheet([headers, ...sampleData])
     const workbook = XLSX.utils.book_new()
@@ -157,17 +157,35 @@ export default function TechniciansPage() {
         }
 
         let importedCount = 0
+        let skippedCount = 0
+        const uniqueNamesInImport = new Set()
+
         for (const row of jsonData) {
           const name = row['Nama'] || row['nama'] || row['NAMA']
           const nik = row['NIK'] || row['nik'] || row['Nik']
           
           if (name) {
+            const trimmedName = String(name).trim()
+            const lowerName = trimmedName.toLowerCase()
+
+            // Check if name already exists in database
+            const existsInDb = technicians.some(t => t.name.toLowerCase().trim() === lowerName)
+            // Check if name is already processed in this import sheet session
+            const existsInSheet = uniqueNamesInImport.has(lowerName)
+
+            if (existsInDb || existsInSheet) {
+              skippedCount++
+              continue
+            }
+
+            uniqueNamesInImport.add(lowerName)
+
             await addTechnician({
-              name: String(name).trim(),
+              name: trimmedName,
               ktp_number: nik ? String(nik).trim() : '',
               bank_name: 'BCA',
               bank_account_number: '-',
-              bank_account_owner_name: String(name).trim(),
+              bank_account_owner_name: trimmedName,
               ktp_image_url: null,
               is_third_party_account: 0,
               third_party_relation: null,
@@ -177,7 +195,12 @@ export default function TechniciansPage() {
           }
         }
 
-        addToast({ title: 'Import Sukses', message: `${importedCount} teknisi berhasil ditambahkan`, variant: 'success' })
+        const skipMessage = skippedCount > 0 ? `, ${skippedCount} nama dilewati karena sudah ada` : ''
+        addToast({ 
+          title: 'Import Sukses', 
+          message: `${importedCount} teknisi berhasil ditambahkan${skipMessage}`, 
+          variant: 'success' 
+        })
       } catch (err) {
         addToast({ title: 'Gagal Import', message: err.message, variant: 'danger' })
       }
@@ -752,6 +775,29 @@ function BulkUploadDialog({ onClose, files }) {
         <div className="dialog__header">
           <h2 className="dialog__title">Proses Upload Massal Foto KTP</h2>
           {isFinished && <button className="dialog__close" onClick={onClose}>✕</button>}
+        </div>
+
+        <div className="alert alert--info mb-4" style={{ 
+          fontSize: 'var(--font-size-xs)', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'flex-start', 
+          gap: 6,
+          background: 'rgba(14, 165, 233, 0.06)',
+          border: '1px solid rgba(14, 165, 233, 0.15)',
+          color: '#0369a1',
+          padding: 'var(--spacing-3) var(--spacing-4)',
+          borderRadius: 'var(--radius-md)',
+          marginBottom: 'var(--spacing-4)'
+        }}>
+          <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span>💡 Petunjuk Format Nama File KTP:</span>
+          </div>
+          <ul style={{ paddingLeft: 16, margin: 0, listStyleType: 'disc', display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <li>Pastikan data nama teknisi sudah di-import/ditambahkan terlebih dahulu ke sistem.</li>
+            <li>Ganti nama (*rename*) file foto KTP menggunakan <strong>NIK</strong> (contoh: <code>3502140810950002.jpg</code>) atau <strong>Nama Lengkap</strong> teknisi (contoh: <code>Ahmad Fauzan.png</code>).</li>
+            <li>Jika nama file tidak sesuai, sistem akan menggunakan deteksi tulisan (OCR) otomatis (pastikan foto KTP tegak, jelas, dan terang).</li>
+          </ul>
         </div>
         
         <div style={{ marginBottom: 'var(--spacing-4)' }}>

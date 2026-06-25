@@ -37,10 +37,10 @@ const useAppStore = create((set, get) => ({
   },
 
   // ─── Authentication Actions ───
-  loginUser: async (email) => {
+  loginUser: async (email, password) => {
     set({ isLoading: true })
     try {
-      const user = await api.post('/users/login', { email })
+      const user = await api.post('/users/login', { email, password })
       set({ currentUser: user, isLoading: false })
       localStorage.setItem('currentUser', JSON.stringify(user))
       get().addToast({ title: 'Login Berhasil', message: `Selamat datang kembali, ${user.name}!`, variant: 'success' })
@@ -56,6 +56,22 @@ const useAppStore = create((set, get) => ({
     set({ currentUser: null })
     localStorage.removeItem('currentUser')
     get().addToast({ title: 'Logout Berhasil', message: 'Anda telah keluar dari sistem.', variant: 'success' })
+  },
+
+  changePassword: async (userId, currentPassword, newPassword) => {
+    set({ isLoading: true })
+    try {
+      const res = await api.post(`/users/${userId}/password`, { currentPassword, newPassword })
+      const updatedUser = { ...get().currentUser, password: newPassword }
+      set({ currentUser: updatedUser, isLoading: false })
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser))
+      get().addToast({ title: 'Sukses', message: 'Password berhasil diubah!', variant: 'success' })
+      return res
+    } catch (error) {
+      set({ isLoading: false })
+      get().addToast({ title: 'Gagal mengubah password', message: error.message, variant: 'danger' })
+      throw error
+    }
   },
 
   // ─── Global Fetch ───

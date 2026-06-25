@@ -2,7 +2,7 @@ import { useState, useMemo, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { FileText, Printer, Download, Search, Eye } from 'lucide-react'
 import useAppStore from '@/store/useAppStore'
-import { formatRupiah, formatDate, AREA_LABELS, TASK_TYPE_LABELS } from '@/lib/utils'
+import { formatRupiah, formatDate, AREA_LABELS, TASK_TYPE_LABELS, nameSimilarity } from '@/lib/utils'
 import { terbilangRupiah } from '@/lib/terbilang'
 
 export default function DocumentPage() {
@@ -25,10 +25,7 @@ export default function DocumentPage() {
 
   const enrichedData = useMemo(() => {
     if (!selectedExpense) return null
-    let tech = technicians.find(t => t.id === selectedExpense.technician_id)
-    if (!tech && selectedExpense.technician_name) {
-      tech = technicians.find(t => t.name.toLowerCase().trim() === selectedExpense.technician_name.toLowerCase().trim())
-    }
+    const tech = findTechnician(selectedExpense.technician_id, selectedExpense.technician_name, technicians)
     let user = users.find(u => u.id === selectedExpense.requestor_id)
     if (!user && selectedExpense.requestor_name) {
       user = users.find(u => u.name.toLowerCase().trim() === selectedExpense.requestor_name.toLowerCase().trim())
@@ -54,7 +51,7 @@ export default function DocumentPage() {
         jsPDF: {
           unit: 'mm',
           format: 'a4',
-          orientation: 'landscape',
+          orientation: activeTab === 'kwitansi' ? 'portrait' : 'landscape',
           compress: true
         },
       }
@@ -85,10 +82,10 @@ export default function DocumentPage() {
             >
               <option value="">— Pilih data pengajuan —</option>
               {eligibleExpenses.map(exp => {
-                const tech = technicians.find(t => t.id === exp.technician_id)
+                const tech = findTechnician(exp.technician_id, exp.technician_name, technicians)
                 return (
                   <option key={exp.id} value={exp.id}>
-                    {exp.document_number} — {tech?.name || 'Unknown'} — {formatRupiah(exp.amount)}
+                    {exp.document_number} — {tech?.name || exp.technician_name || 'Unknown'} — {formatRupiah(exp.amount)}
                   </option>
                 )
               })}
@@ -140,7 +137,7 @@ export default function DocumentPage() {
 
           {/* Preview */}
           <div className="card" style={{ padding: 'var(--spacing-8)', overflow: 'auto' }}>
-            <div ref={printRef}>
+            <div ref={printRef} className={activeTab === 'kwitansi' ? 'print-portrait' : 'print-landscape'}>
               {activeTab === 'kwitansi' ? (
                 <ReceiptPreview data={enrichedData} />
               ) : (
@@ -189,19 +186,86 @@ const splitCategory = (category) => {
   return { part1: category, part2: '' }
 }
 
+const extractCity = (desc) => {
+  if (!desc) return ''
+  const regex = /(?:di|lokasi|wilayah|area)\s+([a-zA-Z\s]+)/i
+  const match = desc.match(regex)
+  if (match) {
+    const rawCity = match[1].trim()
+    const words = rawCity.split(/\s+/)
+    const cleanWords = words.slice(0, 2).map(w => {
+      return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+    })
+    return cleanWords.join(' ')
+  }
+  return ''
+}
+
+const getCity = (desc, area) => {
+  const city = extractCity(desc)
+  if (city) return city
+  if (area) {
+    const areaMap = {
+      JAWA: 'Jawa',
+      PAPUA: 'Papua',
+      SUMATERA: 'Sumatera',
+      KALIMANTAN: 'Kalimantan',
+      SULAWESI: 'Sulawesi',
+      BALI_NUSA: 'Bali',
+      MALUKU: 'Maluku'
+    }
+    return areaMap[area] || area
+  }
+  return ''
+}
+
+const formatIndonesianDate = (dateStr) => {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return dateStr
+  const months = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  ]
+  const day = d.getDate()
+  const month = months[d.getMonth()]
+  const year = d.getFullYear()
+  return `${day} ${month} ${year}`
+}
+
+const findTechnician = (techId, techName, techniciansList) => {
+  if (techId) {
+    const found = techniciansList.find(t => t.id === techId)
+    if (found) return found
+  }
+  if (techName) {
+    const searchName = techName.toLowerCase().trim()
+    // 1. Exact match
+    const exact = techniciansList.find(t => t.name.toLowerCase().trim() === searchName)
+    if (exact) return exact
+
+    // 2. Fuzzy match using nameSimilarity
+    let bestMatch = null
+    let bestScore = 0
+    for (const t of techniciansList) {
+      const score = nameSimilarity(t.name, searchName)
+      if (score > bestScore) {
+        bestScore = score
+        bestMatch = t
+      }
+    }
+    if (bestScore >= 0.7 && bestMatch) {
+      return bestMatch
+    }
+  }
+  return null
+}
+
 function ReceiptPreview({ data }) {
   if (!data) return null
   const { expense, tech, user, task } = data
-
-  const formatCompactDate = (dateStr) => {
-    if (!dateStr) return '-'
-    const d = new Date(dateStr)
-    if (isNaN(d.getTime())) return dateStr
-    const dd = String(d.getDate()).padStart(2, '0')
-    const mm = String(d.getMonth() + 1).padStart(2, '0')
-    const yyyy = d.getFullYear()
-    return `${dd}/${mm}/${yyyy}`
-  }
+  const { uploadKtp } = useAppStore()
+  const [isUploading, setIsUploading] = useState(false)
 
   const formatRawNumber = (num) => {
     if (num == null || isNaN(num)) return '0'
@@ -221,6 +285,7 @@ function ReceiptPreview({ data }) {
 
   const transportAmount = parseTransportAmount(expense.description_other)
   const hasSplit = transportAmount > 0 && expense.amount > transportAmount
+  const city = getCity(expense.description, expense.area || (task && task.area))
 
   const renderSingleVoucher = (title, amt, desc, isCopy = false) => {
     return (
@@ -255,21 +320,37 @@ function ReceiptPreview({ data }) {
               <td style={{ fontWeight: 'bold', padding: '6px 0', verticalAlign: 'top' }}>Uang Sejumlah</td>
               <td style={{ padding: '6px 0', verticalAlign: 'top' }}>:</td>
               <td style={{ padding: '6px 0', verticalAlign: 'top', fontWeight: 'bold' }}>
-                {terbilangRupiah(isCopy ? amt : expense.amount)}
+                {terbilangRupiah(amt)}
               </td>
             </tr>
             <tr>
               <td style={{ fontWeight: 'bold', padding: '6px 0', verticalAlign: 'top' }}>Untuk Pembayaran</td>
               <td style={{ padding: '6px 0', verticalAlign: 'top' }}>:</td>
               <td style={{ padding: '6px 0', verticalAlign: 'top' }}>
-                {desc} {task && `— Area ${task.area}`}
+                <div style={{ position: 'relative', width: '100%', minHeight: '84px', marginTop: '4px' }}>
+                  {/* Line 1 */}
+                  <div style={{ position: 'absolute', left: 0, right: 0, top: '22px', borderBottom: '1px solid #999' }} />
+                  {/* Line 2 */}
+                  <div style={{ position: 'absolute', left: 0, right: 0, top: '50px', borderBottom: '1px solid #999' }} />
+                  {/* Line 3 */}
+                  <div style={{ position: 'absolute', left: 0, right: 0, top: '78px', borderBottom: '1px solid #999' }} />
+                  
+                  <div style={{ 
+                    position: 'relative', 
+                    zIndex: 1, 
+                    lineHeight: '28px', 
+                    fontSize: '12px',
+                    color: '#000',
+                    paddingTop: '2px',
+                    wordBreak: 'break-word'
+                  }}>
+                    {desc} {task && `— Area ${task.area}`}
+                  </div>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
-
-        {/* Separator Line */}
-        <div style={{ borderTop: '1px solid #777', width: '100%', marginBottom: '24px' }} />
 
         {/* Bottom Section: Amount & Signature */}
         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', alignItems: 'end', marginTop: '24px' }}>
@@ -289,38 +370,107 @@ function ReceiptPreview({ data }) {
           </div>
 
           {/* Signature name and date */}
-          <div style={{ textAlign: 'center', width: '220px', marginLeft: 'auto' }}>
-            <div style={{ fontSize: '11px', marginBottom: '16px' }}>
-              {formatCompactDate(expense.disbursement_date || expense.request_date)}
+          <div style={{ textAlign: 'center', width: '240px', marginLeft: 'auto' }}>
+            <div style={{ fontSize: '12px', paddingBottom: '4px' }}>
+              {city ? `${city}, ` : ''}{formatIndonesianDate(expense.disbursement_date || expense.request_date)}
             </div>
-            <div style={{ borderTop: '1px solid #777', marginBottom: '75px' }} />
-            <div style={{ fontWeight: 'bold' }}>
+            <div style={{ borderBottom: '1px solid #000', marginBottom: '95px' }} />
+            <div style={{ fontWeight: 'bold', fontSize: '12px' }}>
               {expense.technician_name || tech?.name || 'Penerima'}
             </div>
           </div>
         </div>
-
 
       </div>
     )
   }
 
   return (
-    <div style={{ background: '#f5f5f5', padding: '24px 0' }}>
-      {/* Display KTP if uploaded */}
-      {tech?.ktp_image_url && (
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <img
-            src={tech.ktp_image_url}
-            alt="KTP Teknisi"
+    <div style={{ background: 'white', padding: '16px 0' }}>
+      {/* Display KTP if uploaded, otherwise show helper / upload option */}
+      {tech ? (
+        tech.ktp_image_url ? (
+          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+            <img
+              src={tech.ktp_image_url}
+              alt="KTP Teknisi"
+              style={{
+                maxWidth: '360px',
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                border: '1px solid #ddd'
+              }}
+            />
+          </div>
+        ) : (
+          <div 
+            className="no-print" 
+            data-html2canvas-ignore="true"
             style={{
-              maxWidth: '450px',
+              border: '2px dashed var(--color-border)',
               borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              border: '1px solid #ddd'
+              padding: '24px',
+              textAlign: 'center',
+              background: 'var(--color-surface-hover)',
+              marginBottom: '24px',
+              maxWidth: '780px',
+              margin: '0 auto 24px auto'
             }}
-          />
-        </div>
+          >
+            <p style={{ fontWeight: 600, marginBottom: '8px', color: 'var(--color-text-secondary)' }}>
+              Foto KTP untuk teknisi "{tech.name}" belum tersedia
+            </p>
+            <p style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginBottom: '16px' }}>
+              Unggah foto KTP di sini untuk menyimpannya ke profil teknisi dan menampilkannya di kwitansi ini.
+            </p>
+            <label className="btn btn--primary" style={{ cursor: 'pointer', display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+              <span>{isUploading ? 'Mengunggah...' : 'Unggah KTP'}</span>
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                disabled={isUploading}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  setIsUploading(true)
+                  try {
+                    await uploadKtp(tech.id, file)
+                  } catch (err) {
+                    console.error(err)
+                  } finally {
+                    setIsUploading(false)
+                  }
+                }}
+              />
+            </label>
+          </div>
+        )
+      ) : (
+        expense?.technician_name && (
+          <div 
+            className="no-print" 
+            data-html2canvas-ignore="true"
+            style={{
+              border: '1px solid #ffccd5',
+              borderRadius: '8px',
+              padding: '16px',
+              textAlign: 'center',
+              background: '#fff5f6',
+              color: '#d9534f',
+              marginBottom: '24px',
+              maxWidth: '780px',
+              margin: '0 auto 24px auto',
+              fontSize: '13px'
+            }}
+          >
+            ⚠️ Teknisi <strong>"{expense.technician_name}"</strong> tidak terdaftar di sistem.
+            <br />
+            <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>
+              Silakan tambahkan teknisi tersebut di menu <strong>Manajemen Teknisi</strong> terlebih dahulu untuk dapat mengunggah KTP.
+            </span>
+          </div>
+        )
       )}
 
       {hasSplit ? (
@@ -343,7 +493,6 @@ function ReceiptPreview({ data }) {
       ) : (
         <>
           {renderSingleVoucher('MAIN', expense.amount, expense.description, false)}
-          {renderSingleVoucher('COPY', expense.amount, expense.description, true)}
         </>
       )}
     </div>
@@ -391,25 +540,25 @@ function CoverPreview({ data }) {
     <div style={{
       background: 'white',
       color: '#1a1a1a',
-      padding: '16px 24px',
+      padding: '8px 16px',
       borderRadius: 'var(--radius-lg)',
       fontFamily: '"Helvetica Neue", Arial, sans-serif',
       fontSize: '11px',
-      lineHeight: '1.4',
+      lineHeight: '1.3',
       maxWidth: '1020px',
       margin: '0 auto',
       boxSizing: 'border-box'
     }}>
       {/* Header Grid: Logo & Title Table */}
-      <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '12px' }}>
+      <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '8px' }}>
         {/* Logo */}
         <img
           src="/logo-mahaga.png"
           alt="Logo Mahaga"
           style={{
-            width: '90px',
+            width: '80px',
             height: 'auto',
-            maxHeight: '72px',
+            maxHeight: '60px',
             objectFit: 'contain',
             flexShrink: 0
           }}
@@ -425,8 +574,8 @@ function CoverPreview({ data }) {
                   border: '1px solid #111',
                   textAlign: 'center',
                   fontWeight: 'bold',
-                  fontSize: '13px',
-                  padding: '4px',
+                  fontSize: '12px',
+                  padding: '3px',
                   letterSpacing: '0.5px'
                 }}>
                   NON-TRAVEL EXPENSE REPORT - MAHAGA PRATAMA
@@ -436,7 +585,7 @@ function CoverPreview({ data }) {
                 <td style={{
                   border: '1px solid #111',
                   textAlign: 'center',
-                  fontSize: '11px',
+                  fontSize: '10px',
                   padding: '2px'
                 }}>
                   Other
@@ -447,7 +596,7 @@ function CoverPreview({ data }) {
                   border: '1px solid #111',
                   textAlign: 'center',
                   fontStyle: 'italic',
-                  fontSize: '11px',
+                  fontSize: '10px',
                   padding: '2px'
                 }}>
                   No. CARF : {expense.document_number}
@@ -459,21 +608,21 @@ function CoverPreview({ data }) {
       </div>
 
       {/* Metadata Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr', gap: '16px', alignItems: 'center', marginBottom: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr', gap: '16px', alignItems: 'center', marginBottom: '8px' }}>
         {/* Left Info Table */}
         <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #111' }}>
           <tbody>
             <tr>
-              <td style={{ border: '1px solid #111', padding: '4px 8px', width: '70px' }}>Nama</td>
-              <td style={{ border: '1px solid #111', padding: '4px 8px', fontWeight: 'bold' }}>: {expense.requestor_name || user?.name || '-'}</td>
+              <td style={{ border: '1px solid #111', padding: '3px 6px', width: '70px' }}>Nama</td>
+              <td style={{ border: '1px solid #111', padding: '3px 6px', fontWeight: 'bold' }}>: {expense.requestor_name || user?.name || '-'}</td>
             </tr>
             <tr>
-              <td style={{ border: '1px solid #111', padding: '4px 8px' }}>Dept</td>
-              <td style={{ border: '1px solid #111', padding: '4px 8px', fontWeight: 'bold' }}>: Mahaga</td>
+              <td style={{ border: '1px solid #111', padding: '3px 6px' }}>Dept</td>
+              <td style={{ border: '1px solid #111', padding: '3px 6px', fontWeight: 'bold' }}>: Mahaga</td>
             </tr>
             <tr>
-              <td style={{ border: '1px solid #111', padding: '4px 8px' }}>Tanggal</td>
-              <td style={{ border: '1px solid #111', padding: '4px 8px', fontWeight: 'bold' }}>: {formatCompactDate(expense.request_date)}</td>
+              <td style={{ border: '1px solid #111', padding: '3px 6px' }}>Tanggal</td>
+              <td style={{ border: '1px solid #111', padding: '3px 6px', fontWeight: 'bold' }}>: {formatCompactDate(expense.request_date)}</td>
             </tr>
           </tbody>
         </table>
@@ -485,7 +634,7 @@ function CoverPreview({ data }) {
           justifyContent: 'center',
           fontSize: '12px',
           fontWeight: 'bold',
-          padding: '8px'
+          padding: '4px'
         }}>
           Pengajuan No. {cleanSeq}
         </div>
@@ -494,14 +643,14 @@ function CoverPreview({ data }) {
         <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #111' }}>
           <tbody>
             <tr>
-              <td style={{ border: '1px solid #111', padding: '4px 8px', width: '100px' }}>Tanggal Diterima</td>
-              <td style={{ border: '1px solid #111', padding: '4px 8px', width: '15px', textAlign: 'center' }}>:</td>
-              <td style={{ border: '1px solid #111', padding: '4px 8px' }}></td>
+              <td style={{ border: '1px solid #111', padding: '3px 6px', width: '100px' }}>Tanggal Diterima</td>
+              <td style={{ border: '1px solid #111', padding: '3px 6px', width: '15px', textAlign: 'center' }}>:</td>
+              <td style={{ border: '1px solid #111', padding: '3px 6px' }}></td>
             </tr>
             <tr>
-              <td style={{ border: '1px solid #111', padding: '4px 8px' }}>Paraf</td>
-              <td style={{ border: '1px solid #111', padding: '4px 8px', textAlign: 'center' }}>:</td>
-              <td style={{ border: '1px solid #111', padding: '4px 8px', color: 'red', textAlign: 'right', fontWeight: 'bold', fontSize: '9px' }}>
+              <td style={{ border: '1px solid #111', padding: '3px 6px' }}>Paraf</td>
+              <td style={{ border: '1px solid #111', padding: '3px 6px', textAlign: 'center' }}>:</td>
+              <td style={{ border: '1px solid #111', padding: '3px 6px', color: 'red', textAlign: 'right', fontWeight: 'bold', fontSize: '9px' }}>
                 (Diisi oleh Admin)
               </td>
             </tr>
@@ -510,56 +659,56 @@ function CoverPreview({ data }) {
       </div>
 
       {/* Realisasi Table */}
-      <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #111', marginBottom: '12px' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #111', marginBottom: '8px' }}>
         <thead>
           <tr style={{ background: '#e0e0e0', fontWeight: 'bold' }}>
-            <th style={{ border: '1px solid #111', width: '40px', padding: '6px', textAlign: 'center' }}>No</th>
-            <th style={{ border: '1px solid #111', width: '100px', padding: '6px', textAlign: 'center' }}>Tanggal</th>
-            <th style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>Uraian</th>
-            <th style={{ border: '1px solid #111', width: '150px', padding: '6px', textAlign: 'center' }}>Jumlah</th>
-            <th style={{ border: '1px solid #111', width: '180px', padding: '6px', textAlign: 'center' }}>Keterangan</th>
+            <th style={{ border: '1px solid #111', width: '40px', padding: '4px', textAlign: 'center' }}>No</th>
+            <th style={{ border: '1px solid #111', width: '100px', padding: '4px', textAlign: 'center' }}>Tanggal</th>
+            <th style={{ border: '1px solid #111', padding: '4px', textAlign: 'center' }}>Uraian</th>
+            <th style={{ border: '1px solid #111', width: '150px', padding: '4px', textAlign: 'center' }}>Jumlah</th>
+            <th style={{ border: '1px solid #111', width: '180px', padding: '4px', textAlign: 'center' }}>Keterangan</th>
           </tr>
         </thead>
         <tbody>
           {hasSplit ? (
             <>
               <tr>
-                <td style={{ border: '1px solid #111', padding: '8px', textAlign: 'center', height: '40px' }}>1</td>
-                <td style={{ border: '1px solid #111', padding: '8px', textAlign: 'center' }}>{formatCompactDate(expense.request_date)}</td>
-                <td style={{ border: '1px solid #111', padding: '8px' }}>{cleanDescriptionForVoucher(expense.description, 'jasa')}</td>
-                <td style={{ border: '1px solid #111', padding: '8px', textAlign: 'center' }}>
+                <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center', height: '32px' }}>1</td>
+                <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>{formatCompactDate(expense.request_date)}</td>
+                <td style={{ border: '1px solid #111', padding: '6px' }}>{cleanDescriptionForVoucher(expense.description, 'jasa')}</td>
+                <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>
                   {formatRawNumber(expense.amount - transportAmount)}
                 </td>
-                <td style={{ border: '1px solid #111', padding: '8px' }}>{splitCategory(expense.expense_category).part1}</td>
+                <td style={{ border: '1px solid #111', padding: '6px' }}>{splitCategory(expense.expense_category).part1}</td>
               </tr>
               <tr>
-                <td style={{ border: '1px solid #111', padding: '8px', textAlign: 'center', height: '40px' }}>2</td>
-                <td style={{ border: '1px solid #111', padding: '8px', textAlign: 'center' }}>{formatCompactDate(expense.request_date)}</td>
-                <td style={{ border: '1px solid #111', padding: '8px' }}>{cleanDescriptionForVoucher(expense.description, 'transport')}</td>
-                <td style={{ border: '1px solid #111', padding: '8px', textAlign: 'center' }}>
+                <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center', height: '32px' }}>2</td>
+                <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>{formatCompactDate(expense.request_date)}</td>
+                <td style={{ border: '1px solid #111', padding: '6px' }}>{cleanDescriptionForVoucher(expense.description, 'transport')}</td>
+                <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>
                   {formatRawNumber(transportAmount)}
                 </td>
-                <td style={{ border: '1px solid #111', padding: '8px' }}>{splitCategory(expense.expense_category).part2}</td>
+                <td style={{ border: '1px solid #111', padding: '6px' }}>{splitCategory(expense.expense_category).part2}</td>
               </tr>
             </>
           ) : (
             <>
               <tr>
-                <td style={{ border: '1px solid #111', padding: '8px', textAlign: 'center', height: '40px' }}>1</td>
-                <td style={{ border: '1px solid #111', padding: '8px', textAlign: 'center' }}>{formatCompactDate(expense.request_date)}</td>
-                <td style={{ border: '1px solid #111', padding: '8px' }}>{expense.description}</td>
-                <td style={{ border: '1px solid #111', padding: '8px', textAlign: 'center' }}>
+                <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center', height: '32px' }}>1</td>
+                <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>{formatCompactDate(expense.request_date)}</td>
+                <td style={{ border: '1px solid #111', padding: '6px' }}>{expense.description}</td>
+                <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>
                   {formatRawNumber(expense.amount)}
                 </td>
-                <td style={{ border: '1px solid #111', padding: '8px' }}>{expense.expense_category || ''}</td>
+                <td style={{ border: '1px solid #111', padding: '6px' }}>{expense.expense_category || ''}</td>
               </tr>
               {/* Dummy Empty Row */}
               <tr>
-                <td style={{ border: '1px solid #111', padding: '8px', height: '32px' }}></td>
-                <td style={{ border: '1px solid #111', padding: '8px' }}></td>
-                <td style={{ border: '1px solid #111', padding: '8px' }}></td>
-                <td style={{ border: '1px solid #111', padding: '8px' }}></td>
-                <td style={{ border: '1px solid #111', padding: '8px' }}></td>
+                <td style={{ border: '1px solid #111', padding: '6px', height: '24px' }}></td>
+                <td style={{ border: '1px solid #111', padding: '6px' }}></td>
+                <td style={{ border: '1px solid #111', padding: '6px' }}></td>
+                <td style={{ border: '1px solid #111', padding: '6px' }}></td>
+                <td style={{ border: '1px solid #111', padding: '6px' }}></td>
               </tr>
             </>
           )}
@@ -567,7 +716,7 @@ function CoverPreview({ data }) {
           <tr>
             <td colSpan={3} style={{
               border: '1px solid #111',
-              padding: '6px',
+              padding: '4px',
               textAlign: 'center',
               fontWeight: 'bold',
               textTransform: 'uppercase',
@@ -579,20 +728,20 @@ function CoverPreview({ data }) {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <tbody>
                   <tr style={{ borderBottom: '1px solid #111' }}>
-                    <td style={{ padding: '4px 8px', fontWeight: 'bold', width: '150px', borderRight: '1px solid #111' }}>Advance Taken</td>
-                    <td style={{ padding: '4px 8px', textAlign: 'right', fontWeight: 'bold' }}>
+                    <td style={{ padding: '3px 6px', fontWeight: 'bold', width: '150px', borderRight: '1px solid #111' }}>Advance Taken</td>
+                    <td style={{ padding: '3px 6px', textAlign: 'right', fontWeight: 'bold' }}>
                       Rp{formatRawNumber(expense.amount)}
                     </td>
                   </tr>
                   <tr style={{ borderBottom: '1px solid #111' }}>
-                    <td style={{ padding: '4px 8px', fontWeight: 'bold', width: '150px', borderRight: '1px solid #111' }}>Total Expense</td>
-                    <td style={{ padding: '4px 8px', textAlign: 'right', fontWeight: 'bold' }}>
+                    <td style={{ padding: '3px 6px', fontWeight: 'bold', width: '150px', borderRight: '1px solid #111' }}>Total Expense</td>
+                    <td style={{ padding: '3px 6px', textAlign: 'right', fontWeight: 'bold' }}>
                       Rp{formatRawNumber(expense.amount)}
                     </td>
                   </tr>
                   <tr>
-                    <td style={{ padding: '4px 8px', fontWeight: 'bold', width: '150px', borderRight: '1px solid #111' }}>Balance / Retur / (Add)</td>
-                    <td style={{ padding: '4px 8px', textAlign: 'right', fontWeight: 'bold' }}>Rp0</td>
+                    <td style={{ padding: '3px 6px', fontWeight: 'bold', width: '150px', borderRight: '1px solid #111' }}>Balance / Retur / (Add)</td>
+                    <td style={{ padding: '3px 6px', textAlign: 'right', fontWeight: 'bold' }}>Rp0</td>
                   </tr>
                 </tbody>
               </table>
@@ -602,35 +751,35 @@ function CoverPreview({ data }) {
       </table>
 
       {/* Approval Section Table */}
-      <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #111', marginBottom: '12px', textAlign: 'center' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #111', marginBottom: '8px', textAlign: 'center' }}>
         <thead>
           <tr style={{ background: '#f5f5f5', fontSize: '10px' }}>
-            <th style={{ border: '1px solid #111', padding: '4px', width: '16.6%' }}>Dibuat oleh,<br />User</th>
-            <th style={{ border: '1px solid #111', padding: '4px', width: '16.6%' }}>Disetujui oleh,<br />Atasan Langsung</th>
-            <th style={{ border: '1px solid #111', padding: '4px', width: '16.6%' }}>Diperiksa oleh,<br />Budget Admin</th>
-            <th style={{ border: '1px solid #111', padding: '4px', width: '16.6%' }}>Diperiksa oleh,<br />Kepala Divisi & Budget Holder</th>
-            <th style={{ border: '1px solid #111', padding: '4px', width: '16.6%' }}>Disetujui oleh,<br />Direktur*</th>
-            <th style={{ border: '1px solid #111', padding: '4px', width: '16.6%' }}>Disetujui oleh,<br />Direktur**</th>
+            <th style={{ border: '1px solid #111', padding: '3px', width: '16.6%' }}>Dibuat oleh,<br />User</th>
+            <th style={{ border: '1px solid #111', padding: '3px', width: '16.6%' }}>Disetujui oleh,<br />Atasan Langsung</th>
+            <th style={{ border: '1px solid #111', padding: '3px', width: '16.6%' }}>Diperiksa oleh,<br />Budget Admin</th>
+            <th style={{ border: '1px solid #111', padding: '3px', width: '16.6%' }}>Diperiksa oleh,<br />Kepala Divisi & Budget Holder</th>
+            <th style={{ border: '1px solid #111', padding: '3px', width: '16.6%' }}>Disetujui oleh,<br />Direktur*</th>
+            <th style={{ border: '1px solid #111', padding: '3px', width: '16.6%' }}>Disetujui oleh,<br />Direktur**</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td style={{ border: '1px solid #111', height: '48px', verticalAlign: 'bottom', paddingBottom: '4px' }}>
+            <td style={{ border: '1px solid #111', height: '38px', verticalAlign: 'bottom', paddingBottom: '3px' }}>
               <div style={{ fontStyle: 'italic' }}>{expense.technician_name || tech?.name || '________________'}</div>
             </td>
-            <td style={{ border: '1px solid #111', height: '48px', verticalAlign: 'bottom', paddingBottom: '4px' }}>
+            <td style={{ border: '1px solid #111', height: '38px', verticalAlign: 'bottom', paddingBottom: '3px' }}>
               <div style={{ fontStyle: 'italic' }}>Ardi Ahmad Syauki</div>
             </td>
-            <td style={{ border: '1px solid #111', height: '48px', verticalAlign: 'bottom', paddingBottom: '4px' }}>
+            <td style={{ border: '1px solid #111', height: '38px', verticalAlign: 'bottom', paddingBottom: '3px' }}>
               <div style={{ fontStyle: 'italic', color: '#888' }}></div>
             </td>
-            <td style={{ border: '1px solid #111', height: '48px', verticalAlign: 'bottom', paddingBottom: '4px' }}>
+            <td style={{ border: '1px solid #111', height: '38px', verticalAlign: 'bottom', paddingBottom: '3px' }}>
               <div style={{ fontStyle: 'italic' }}>Adi Wibowo</div>
             </td>
-            <td style={{ border: '1px solid #111', height: '48px', verticalAlign: 'bottom', paddingBottom: '4px' }}>
+            <td style={{ border: '1px solid #111', height: '38px', verticalAlign: 'bottom', paddingBottom: '3px' }}>
               <div style={{ fontStyle: 'italic', color: '#888' }}></div>
             </td>
-            <td style={{ border: '1px solid #111', height: '48px', verticalAlign: 'bottom', paddingBottom: '4px' }}>
+            <td style={{ border: '1px solid #111', height: '38px', verticalAlign: 'bottom', paddingBottom: '3px' }}>
               <div style={{ fontStyle: 'italic', color: '#888' }}></div>
             </td>
           </tr>
@@ -638,26 +787,26 @@ function CoverPreview({ data }) {
       </table>
 
       {/* Footer Details: Transfer to, Return to, Distribusi Cost */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr', gap: '16px', marginBottom: '8px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr', gap: '16px', marginBottom: '4px' }}>
         {/* Transfer To */}
         <div style={{ border: '1px solid #111', boxSizing: 'border-box' }}>
-          <div style={{ borderBottom: '1px solid #111', padding: '4px', fontWeight: 'bold', textAlign: 'center', background: '#f5f5f5' }}>
+          <div style={{ borderBottom: '1px solid #111', padding: '3px', fontWeight: 'bold', textAlign: 'center', background: '#f5f5f5' }}>
             Transfer To
           </div>
-          <div style={{ padding: '8px' }}>
+          <div style={{ padding: '6px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
               <tbody>
                 <tr>
-                  <td style={{ width: '60px', padding: '2px 0' }}>Nama</td>
-                  <td style={{ padding: '2px 0' }}>: {tech?.bank_account_owner_name || ''}</td>
+                  <td style={{ width: '60px', padding: '1px 0' }}>Nama</td>
+                  <td style={{ padding: '1px 0' }}>: {tech?.bank_account_owner_name || ''}</td>
                 </tr>
                 <tr>
-                  <td style={{ padding: '2px 0' }}>No. Rek</td>
-                  <td style={{ padding: '2px 0', fontFamily: 'monospace' }}>: {tech?.bank_account_number || ''}</td>
+                  <td style={{ padding: '1px 0' }}>No. Rek</td>
+                  <td style={{ padding: '1px 0', fontFamily: 'monospace' }}>: {tech?.bank_account_number || ''}</td>
                 </tr>
                 <tr>
-                  <td style={{ padding: '2px 0' }}>Bank</td>
-                  <td style={{ padding: '2px 0' }}>: {tech?.bank_name || ''}</td>
+                  <td style={{ padding: '1px 0' }}>Bank</td>
+                  <td style={{ padding: '1px 0' }}>: {tech?.bank_name || ''}</td>
                 </tr>
               </tbody>
             </table>
@@ -666,37 +815,37 @@ function CoverPreview({ data }) {
 
         {/* Retur to Company */}
         <div style={{ border: '1px solid #111', boxSizing: 'border-box', textAlign: 'center' }}>
-          <div style={{ borderBottom: '1px solid #111', padding: '4px', fontWeight: 'bold', background: '#f5f5f5' }}>
+          <div style={{ borderBottom: '1px solid #111', padding: '3px', fontWeight: 'bold', background: '#f5f5f5' }}>
             Retur to Company paid to :
           </div>
-          <div style={{ padding: '12px 8px' }}>
-            <div style={{ fontSize: '10px', fontWeight: 'bold', margin: '4px 0' }}>MANDIRI 124 000 519 6192</div>
+          <div style={{ padding: '6px 8px' }}>
+            <div style={{ fontSize: '10px', fontWeight: 'bold', margin: '2px 0' }}>MANDIRI 124 000 519 6192</div>
             <div style={{ fontSize: '10px', fontWeight: 'bold' }}>PT MAHAGA PRATAMA</div>
           </div>
         </div>
 
         {/* Distribusi Cost */}
         <div style={{ border: '1px solid #111', boxSizing: 'border-box' }}>
-          <div style={{ borderBottom: '1px solid #111', padding: '4px', fontWeight: 'bold', textAlign: 'center', background: '#f5f5f5' }}>
+          <div style={{ borderBottom: '1px solid #111', padding: '3px', fontWeight: 'bold', textAlign: 'center', background: '#f5f5f5' }}>
             Distribusi Cost
           </div>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9px' }}>
             <tbody>
               <tr style={{ borderBottom: '1px solid #111' }}>
-                <td style={{ padding: '3px 6px', width: '80px', fontWeight: 'bold', background: '#f5f5f5', borderRight: '1px solid #111' }}>Budget Dept</td>
-                <td style={{ padding: '3px 6px' }}>:</td>
+                <td style={{ padding: '2px 4px', width: '80px', fontWeight: 'bold', background: '#f5f5f5', borderRight: '1px solid #111' }}>Budget Dept</td>
+                <td style={{ padding: '2px 4px' }}>:</td>
               </tr>
               <tr style={{ borderBottom: '1px solid #111' }}>
-                <td style={{ padding: '3px 6px', fontWeight: 'bold', background: '#f5f5f5', borderRight: '1px solid #111' }}>License</td>
-                <td style={{ padding: '3px 6px' }}>:</td>
+                <td style={{ padding: '2px 4px', fontWeight: 'bold', background: '#f5f5f5', borderRight: '1px solid #111' }}>License</td>
+                <td style={{ padding: '2px 4px' }}>:</td>
               </tr>
               <tr style={{ borderBottom: '1px solid #111' }}>
-                <td style={{ padding: '3px 6px', fontWeight: 'bold', background: '#f5f5f5', borderRight: '1px solid #111' }}>Product</td>
-                <td style={{ padding: '3px 6px' }}>:</td>
+                <td style={{ padding: '2px 4px', fontWeight: 'bold', background: '#f5f5f5', borderRight: '1px solid #111' }}>Product</td>
+                <td style={{ padding: '2px 4px' }}>:</td>
               </tr>
               <tr>
-                <td style={{ padding: '3px 6px', fontWeight: 'bold', background: '#f5f5f5', borderRight: '1px solid #111' }}>Project</td>
-                <td style={{ padding: '3px 6px' }}>:</td>
+                <td style={{ padding: '2px 4px', fontWeight: 'bold', background: '#f5f5f5', borderRight: '1px solid #111' }}>Project</td>
+                <td style={{ padding: '2px 4px' }}>:</td>
               </tr>
             </tbody>
           </table>
@@ -704,7 +853,7 @@ function CoverPreview({ data }) {
       </div>
 
       {/* Bullet Notes (Blue Text) */}
-      <div style={{ color: '#1e3a8a', fontSize: '9px', lineHeight: '1.3', paddingLeft: '4px' }}>
+      <div style={{ color: '#1e3a8a', fontSize: '9px', lineHeight: '1.2', paddingLeft: '4px' }}>
         <div>* Jika Total Expense di Atas 5 juta harus mendapat approval Kepala Divisi dan Direktur terkait</div>
         <div>Untuk Bukti bayar harus dalam bentukan nota resmi dengan logo dan stempel, bila tidak harus ada approval budget holder atau atasan langsung</div>
         <div>Setelah mengembalikan uang retur ke rekening PSN wajib menginformasikan ke accounting melalui email</div>

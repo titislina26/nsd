@@ -3,7 +3,7 @@ import { Upload, FileSpreadsheet, CheckCircle, AlertTriangle, X, ArrowRight, Arr
 import * as XLSX from 'xlsx'
 import useAppStore from '@/store/useAppStore'
 import { parseFile, autoMapColumns, CARF_SCHEMA_FIELDS } from '@/lib/csv-parser'
-import { isValidAmount, isValidDate, formatRupiah } from '@/lib/utils'
+import { isValidAmount, isValidDate, formatRupiah, nameSimilarity } from '@/lib/utils'
 
 const STEPS = [
   { label: 'Upload File', icon: Upload },
@@ -113,10 +113,25 @@ export default function ImportPage() {
       if (!isValidAmount(mapped.amount)) errors.push('Nominal tidak valid')
       if (mapped.request_date && !isValidDate(mapped.request_date)) errors.push('Tanggal tidak valid')
       if (mapped.technician_name) {
-        const found = technicians.find(t =>
-          t.name.toLowerCase().trim() === mapped.technician_name.toLowerCase().trim()
-        )
-        if (found) mapped.__technician_id = found.id
+        const searchName = mapped.technician_name.toLowerCase().trim()
+        let found = technicians.find(t => t.name.toLowerCase().trim() === searchName)
+        if (!found) {
+          let bestMatch = null
+          let bestScore = 0
+          for (const t of technicians) {
+            const score = nameSimilarity(t.name, searchName)
+            if (score > bestScore) {
+              bestScore = score
+              bestMatch = t
+            }
+          }
+          if (bestScore >= 0.7 && bestMatch) {
+            found = bestMatch
+          }
+        }
+        if (found) {
+          mapped.__technician_id = found.id
+        }
       }
 
       mapped.__errors = errors

@@ -9,9 +9,17 @@ export async function initializeSchema() {
       email TEXT UNIQUE NOT NULL,
       role TEXT NOT NULL CHECK (role IN ('ADMIN_FINANCE', 'REQUESTOR')),
       area TEXT,
-      created_at TEXT DEFAULT to_char(NOW(), 'YYYY-MM-DD')
+      created_at TEXT DEFAULT to_char(NOW(), 'YYYY-MM-DD'),
+      password TEXT DEFAULT 'password'
     );
   `)
+
+  // Migrate existing databases to have the password column
+  try {
+    await execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS password TEXT DEFAULT 'password';")
+  } catch (err) {
+    console.error('Failed to migrate password column on users:', err)
+  }
 
   // 2. Technicians table (Data Teknisi & Rekening)
   await execute(`
