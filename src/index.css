@@ -1549,6 +1549,12 @@ a:hover {
     box-shadow: none !important;
     background: white !important;
   }
+
+  .print-preview-wrapper.card {
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
 }
 
 .print-only {

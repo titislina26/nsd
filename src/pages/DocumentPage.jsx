@@ -63,7 +63,7 @@ export default function DocumentPage() {
 
   return (
     <div className="page">
-      <div className="page__header">
+      <div className="page__header no-print">
         <div>
           <h1 className="page__title">Generator Dokumen</h1>
           <p className="page__subtitle">Buat kwitansi dan cover report untuk data CARF yang sudah dibayarkan</p>
@@ -71,7 +71,7 @@ export default function DocumentPage() {
       </div>
 
       {/* Expense Selector */}
-      <div className="card" style={{ marginBottom: 'var(--spacing-6)' }}>
+      <div className="card no-print" style={{ marginBottom: 'var(--spacing-6)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-4)', flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 300 }}>
             <label className="label">Pilih Data CARF</label>
@@ -108,7 +108,7 @@ export default function DocumentPage() {
       </div>
 
       {!selectedExpense ? (
-        <div className="card" style={{ textAlign: 'center', padding: 'var(--spacing-16)' }}>
+        <div className="card no-print" style={{ textAlign: 'center', padding: 'var(--spacing-16)' }}>
           <FileText size={48} style={{ color: 'var(--color-text-tertiary)', marginBottom: 'var(--spacing-4)' }} />
           <p style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
             Pilih data CARF untuk membuat dokumen
@@ -120,7 +120,7 @@ export default function DocumentPage() {
       ) : (
         <>
           {/* Tabs */}
-          <div className="tabs" style={{ marginBottom: 'var(--spacing-6)' }}>
+          <div className="tabs no-print" style={{ marginBottom: 'var(--spacing-6)' }}>
             <button
               className={`tab ${activeTab === 'kwitansi' ? 'tab--active' : ''}`}
               onClick={() => setActiveTab('kwitansi')}
@@ -136,7 +136,7 @@ export default function DocumentPage() {
           </div>
 
           {/* Preview */}
-          <div className="card" style={{ padding: 'var(--spacing-8)', overflow: 'auto' }}>
+          <div className="print-preview-wrapper card" style={{ overflow: 'auto' }}>
             <div ref={printRef} className={activeTab === 'kwitansi' ? 'print-portrait' : 'print-landscape'}>
               {activeTab === 'kwitansi' ? (
                 <ReceiptPreview data={enrichedData} />
