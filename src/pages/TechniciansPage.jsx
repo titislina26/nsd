@@ -161,8 +161,14 @@ export default function TechniciansPage() {
         const uniqueNamesInImport = new Set()
 
         for (const row of jsonData) {
-          const name = row['Nama'] || row['nama'] || row['NAMA']
-          const nik = row['NIK'] || row['nik'] || row['Nik']
+          // Normalize column headers to handle spaces and different cases
+          const normalizedRow = {}
+          for (const key in row) {
+            normalizedRow[key.toString().toLowerCase().trim()] = row[key]
+          }
+
+          const name = normalizedRow['nama'] || normalizedRow['nama teknisi'] || normalizedRow['name'] || normalizedRow['teknisi']
+          const nik = normalizedRow['nik'] || normalizedRow['no. ktp'] || normalizedRow['no ktp'] || normalizedRow['ktp'] || normalizedRow['no_ktp']
           
           if (name) {
             const trimmedName = String(name).trim()
@@ -193,6 +199,15 @@ export default function TechniciansPage() {
             })
             importedCount++
           }
+        }
+
+        if (importedCount === 0 && skippedCount === 0) {
+          addToast({ 
+            title: 'Format Tidak Sesuai', 
+            message: 'Tidak menemukan kolom "Nama". Pastikan baris pertama berisi judul kolom "Nama" dan "NIK".', 
+            variant: 'danger' 
+          })
+          return
         }
 
         const skipMessage = skippedCount > 0 ? `, ${skippedCount} nama dilewati karena sudah ada` : ''
