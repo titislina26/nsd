@@ -1,5 +1,6 @@
 import KpiCards from '@/components/dashboard/KpiCards'
 import useAppStore from '@/store/useAppStore'
+import { CheckCircle, Clock } from 'lucide-react'
 
 export default function DashboardPage() {
   const store = useAppStore()
@@ -9,61 +10,101 @@ export default function DashboardPage() {
   const pendingCount = totalCount - doneCount
 
   return (
-    <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="page">
+      <div className="page__header">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">Dashboard Analitik</h1>
-          <p className="text-gray-500 mt-1 font-medium">Ringkasan operasional dan pengeluaran CARF</p>
+          <h1 className="page__title">Dashboard Analitik</h1>
+          <p className="page__subtitle">Ringkasan operasional dan pengeluaran CARF</p>
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <KpiCards />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-6)' }}>
+        {/* KPI Cards */}
+        <KpiCards />
 
-      {/* Progress Diagram Card */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 hover:shadow-md transition-shadow duration-300">
-        <h3 className="text-lg font-bold mb-6 text-gray-900">
-          Status Penyelesaian & Pencetakan Dokumen
-        </h3>
-        
-        <div className="flex justify-between items-end mb-3">
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-              Progres Keseluruhan
+        {/* Progress Diagram Card */}
+        <div className="card" style={{ padding: 'var(--spacing-8)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-8)', flexWrap: 'wrap', gap: 'var(--spacing-4)' }}>
+            <div>
+              <h3 style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 'var(--spacing-1)' }}>
+                Status Penyelesaian & Pencetakan
+              </h3>
+              <p style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-sm)' }}>
+                Pantau progres dokumen yang telah diproses hingga pencetakan.
+              </p>
+            </div>
+            <div className="badge badge--primary" style={{ padding: 'var(--spacing-2) var(--spacing-4)', fontSize: 'var(--font-size-sm)' }}>
+              Progres Keseluruhan: {percentage}%
+            </div>
+          </div>
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 'var(--spacing-3)' }}>
+            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Penyelesaian
             </span>
-            <span className="text-3xl font-bold text-primary mt-1">
-              {percentage}%
+            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+              {doneCount} dari {totalCount} Dokumen Selesai
             </span>
           </div>
-          <span className="text-sm text-gray-500 font-medium bg-gray-50 px-3 py-1 rounded-full">
-            {doneCount} dari {totalCount} Selesai
-          </span>
-        </div>
 
-        {/* Progress bar container */}
-        <div className="w-full h-4 bg-gray-100 rounded-full overflow-hidden flex mb-6 shadow-inner">
-          {/* Done progress */}
-          <div 
-            className="h-full bg-gradient-to-r from-green-400 to-primary rounded-full transition-all duration-1000 ease-out relative"
-            style={{ width: `${percentage}%` }}
-          >
-             <div className="absolute inset-0 bg-white/20 w-full h-full transform -skew-x-12 translate-x-[-100%] animate-[shimmer_2s_infinite]" />
+          {/* Progress bar container */}
+          <div style={{ 
+            width: '100%', 
+            height: '24px', 
+            background: 'var(--color-border-subtle)', 
+            borderRadius: 'var(--radius-full)', 
+            overflow: 'hidden', 
+            display: 'flex', 
+            marginBottom: 'var(--spacing-8)', 
+            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)' 
+          }}>
+            {/* Done progress */}
+            <div 
+              style={{ 
+                width: `${percentage}%`, 
+                background: 'linear-gradient(90deg, var(--color-success) 0%, #34d399 100%)',
+                height: '100%',
+                transition: 'width 1s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontSize: '12px',
+                fontWeight: 700
+              }}
+            >
+              {percentage > 5 && `${percentage}%`}
+              <div style={{ 
+                position: 'absolute', inset: 0, 
+                background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+                backgroundSize: '200% 100%',
+                animation: 'shimmer 2.5s infinite linear' 
+              }} />
+            </div>
           </div>
-        </div>
 
-        {/* Legend */}
-        <div className="flex gap-6 flex-wrap">
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-primary shadow-[0_0_8px_rgba(21,128,61,0.5)]" />
-            <span className="text-sm font-medium text-gray-700">
-              Selesai & Diprint ({doneCount})
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-gray-200" />
-            <span className="text-sm font-medium text-gray-600">
-              Pending ({pendingCount})
-            </span>
+          {/* Legend */}
+          <div style={{ display: 'flex', gap: 'var(--spacing-8)', flexWrap: 'wrap', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-6)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)' }}>
+              <div style={{ width: 48, height: 48, borderRadius: 'var(--radius-full)', background: 'var(--color-success-muted)', color: 'var(--color-success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <CheckCircle size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)', fontWeight: 500 }}>Selesai & Diprint</div>
+                <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 800, color: 'var(--color-text-primary)' }}>{doneCount}</div>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)' }}>
+              <div style={{ width: 48, height: 48, borderRadius: 'var(--radius-full)', background: 'rgba(100, 116, 139, 0.1)', color: 'var(--color-text-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Clock size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)', fontWeight: 500 }}>Pending Documents</div>
+                <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 800, color: 'var(--color-text-primary)' }}>{pendingCount}</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
