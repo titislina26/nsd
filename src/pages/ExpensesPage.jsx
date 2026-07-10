@@ -9,7 +9,7 @@ import {
 } from '@/lib/utils'
 
 export default function ExpensesPage() {
-  const { carfExpenses, users, technicians, tasks, updateExpenseStatus, deleteExpense, deleteExpensesBulk, addExpense, uploadReceipt, addToast } = useAppStore()
+  const { carfExpenses, users, technicians, tasks, updateExpenseStatus, deleteExpense, deleteExpensesBulk, addExpense, uploadReceipt, addToast, isLoading } = useAppStore()
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
@@ -171,7 +171,16 @@ export default function ExpensesPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={9} style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                      <span style={{ fontSize: 'var(--font-size-sm)' }}>Memuat data...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="data-table__empty">
                     Tidak ada data ditemukan

@@ -9,7 +9,7 @@ import { performKtpOcr } from '@/lib/ocr'
 import * as XLSX from 'xlsx'
 
 export default function TechniciansPage() {
-  const { technicians, updateTechnician, updateVerificationStatus, addTechnician, deleteTechnician, uploadKtp, addToast } = useAppStore()
+  const { technicians, updateTechnician, updateVerificationStatus, addTechnician, deleteTechnician, uploadKtp, addToast, isLoading } = useAppStore()
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [selectedTech, setSelectedTech] = useState(null)
@@ -304,7 +304,16 @@ export default function TechniciansPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                      <span style={{ fontSize: 'var(--font-size-sm)' }}>Memuat data...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : filtered.length === 0 ? (
                 <tr><td colSpan={5} className="data-table__empty">Tidak ada data ditemukan</td></tr>
               ) : (
                 filtered.map(tech => (
