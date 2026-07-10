@@ -400,8 +400,10 @@ export default function TechniciansPage() {
   )
 }
 
-function VerifyDrawer({ technician, onClose }) {
-  const { updateTechnician, updateVerificationStatus, uploadKtp, addToast } = useAppStore()
+function VerifyDrawer({ technician: initialTechnician, onClose }) {
+  const { technicians, updateTechnician, updateVerificationStatus, uploadKtp, addToast } = useAppStore()
+  const technician = technicians.find(t => t.id === initialTechnician.id) || initialTechnician
+
   const [name, setName] = useState(technician.name)
   const [ktpNumber, setKtpNumber] = useState(technician.ktp_number || '')
   const [zoom, setZoom] = useState(1)
