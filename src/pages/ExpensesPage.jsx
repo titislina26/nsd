@@ -271,6 +271,7 @@ export default function ExpensesPage() {
 function AddExpenseDialog({ onClose }) {
   const { addExpense, technicians, addToast } = useAppStore()
   const navigate = useNavigate()
+  const [isSaving, setIsSaving] = useState(false)
   const [form, setForm] = useState({
     document_number: '',
     pengajuan_number: '',
@@ -292,6 +293,10 @@ function AddExpenseDialog({ onClose }) {
       addToast({ title: 'Harap isi semua field wajib', variant: 'danger' })
       return
     }
+    
+    if (isSaving) return
+    setIsSaving(true)
+    
     try {
       const newExpense = await addExpense({
         ...form,
@@ -302,6 +307,8 @@ function AddExpenseDialog({ onClose }) {
       navigate('/documents', { state: { selectedExpenseId: newExpense.id } })
     } catch (err) {
       // Toast error is handled inside the store
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -322,6 +329,7 @@ function AddExpenseDialog({ onClose }) {
                 placeholder="CARF/NSD/2026/06/XXX"
                 value={form.document_number}
                 onChange={e => setForm({ ...form, document_number: e.target.value })}
+                disabled={isSaving}
               />
             </div>
             <div className="form-group">
@@ -331,6 +339,7 @@ function AddExpenseDialog({ onClose }) {
                 placeholder="Misal: 33"
                 value={form.pengajuan_number}
                 onChange={e => setForm({ ...form, pengajuan_number: e.target.value })}
+                disabled={isSaving}
               />
             </div>
             <div className="form-group">
@@ -340,6 +349,7 @@ function AddExpenseDialog({ onClose }) {
                 className="input"
                 value={form.request_date}
                 onChange={e => setForm({ ...form, request_date: e.target.value })}
+                disabled={isSaving}
               />
             </div>
           </div>
@@ -350,6 +360,7 @@ function AddExpenseDialog({ onClose }) {
               <select
                 className="input select"
                 value={form.technician_name}
+                disabled={isSaving}
                 onChange={e => {
                   const selectedName = e.target.value
                   const selectedTech = technicians.find(t => t.name === selectedName)
@@ -375,6 +386,7 @@ function AddExpenseDialog({ onClose }) {
                 placeholder="Masukkan nama Requestor"
                 value={form.requestor_name}
                 onChange={e => setForm({ ...form, requestor_name: e.target.value })}
+                disabled={isSaving}
               />
             </div>
           </div>
@@ -387,6 +399,7 @@ function AddExpenseDialog({ onClose }) {
                 placeholder="Misal: Transportasi / Tiket Pesawat"
                 value={form.expense_category}
                 onChange={e => setForm({ ...form, expense_category: e.target.value })}
+                disabled={isSaving}
               />
             </div>
             <div className="form-group">
@@ -396,6 +409,7 @@ function AddExpenseDialog({ onClose }) {
                 placeholder="1500000"
                 value={form.amount}
                 onChange={e => setForm({ ...form, amount: e.target.value })}
+                disabled={isSaving}
               />
             </div>
           </div>
@@ -407,6 +421,7 @@ function AddExpenseDialog({ onClose }) {
               placeholder="Detail kebutuhan..."
               value={form.description}
               onChange={e => setForm({ ...form, description: e.target.value })}
+              disabled={isSaving}
             />
           </div>
 
@@ -417,12 +432,15 @@ function AddExpenseDialog({ onClose }) {
               placeholder="Detail rincian dana other..."
               value={form.description_other}
               onChange={e => setForm({ ...form, description_other: e.target.value })}
+              disabled={isSaving}
             />
           </div>
 
           <div className="dialog__footer">
-            <button type="button" className="btn btn--ghost" onClick={onClose}>Batal</button>
-            <button type="submit" className="btn btn--primary">Simpan</button>
+            <button type="button" className="btn btn--ghost" onClick={onClose} disabled={isSaving}>Batal</button>
+            <button type="submit" className="btn btn--primary" disabled={isSaving}>
+              {isSaving ? 'Menyimpan...' : 'Simpan'}
+            </button>
           </div>
         </form>
       </div>
