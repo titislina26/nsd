@@ -146,40 +146,46 @@ export function autoMapColumns(sourceHeaders, targetFields) {
   const mapping = {}
 
   for (const source of sourceHeaders) {
-    const normalized = source.toLowerCase().replace(/[_\-\s]+/g, '')
+    const normalized = source.toLowerCase().trim().replace(/[_\-\s]+/g, '')
     let bestMatch = null
     let bestScore = 0
 
     for (const field of targetFields) {
-      // Check exact key match
-      if (normalized === field.key.toLowerCase()) {
+      // 1. Check exact key match
+      if (normalized === field.key.toLowerCase().replace(/[_\-\s]+/g, '')) {
         bestMatch = field.key
         bestScore = 1
         break
       }
 
-      // Check label match
+      // 2. Check exact label match
       if (normalized === field.label.toLowerCase().replace(/[_\-\s]+/g, '')) {
         bestMatch = field.key
-        bestScore = 0.9
-        continue
+        bestScore = 1
+        break
       }
 
-      // Check aliases
+      // 3. Check exact alias match
       if (field.aliases) {
         for (const alias of field.aliases) {
           const normAlias = alias.toLowerCase().replace(/[_\-\s]+/g, '')
-          if (normalized.includes(normAlias) || normAlias.includes(normalized)) {
-            if (0.7 > bestScore) {
+          if (normalized === normAlias) {
+            if (0.9 > bestScore) {
               bestMatch = field.key
-              bestScore = 0.7
+              bestScore = 0.9
+            }
+          } else if (normalized.includes(normAlias) && normAlias.length > 4) {
+            // Only allow partial match if alias is long enough to avoid false positives like 'no'
+            if (0.5 > bestScore) {
+              bestMatch = field.key
+              bestScore = 0.5
             }
           }
         }
       }
     }
 
-    if (bestMatch && bestScore >= 0.7) {
+    if (bestMatch && bestScore >= 0.5) {
       mapping[source] = bestMatch
     }
   }
