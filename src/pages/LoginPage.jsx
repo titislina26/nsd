@@ -29,7 +29,8 @@ export default function LoginPage() {
       setLoadingDemo(true)
       try {
         const users = await api.get('/users')
-        setDemoUsers(users.slice(0, 5)) // show top 5
+        const allowedEmails = ['titis@nso.co.id', 'laeli@nso.co.id']
+        setDemoUsers(users.filter(u => allowedEmails.includes(u.email)))
       } catch (err) {
         console.error('Failed to fetch demo users', err)
       } finally {
