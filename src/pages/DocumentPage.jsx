@@ -557,7 +557,7 @@ function CoverPreview({ data }) {
       <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #111', marginBottom: '8px' }}>
         <tbody>
           <tr>
-            <td rowSpan={3} style={{ width: '120px', textAlign: 'center', borderRight: '1px solid #111', padding: '8px' }}>
+            <td rowSpan={4} style={{ width: '120px', textAlign: 'center', borderRight: '1px solid #111', padding: '8px' }}>
               <img src="/logo-mahaga.png" alt="Logo Mahaga" style={{ maxHeight: '70px', objectFit: 'contain' }} />
             </td>
             <td style={{ background: '#bfbfbf', borderBottom: '1px solid #111', textAlign: 'center', fontWeight: 'bold', fontSize: '12px', padding: '4px' }}>
@@ -570,9 +570,12 @@ function CoverPreview({ data }) {
             </td>
           </tr>
           <tr>
-            <td style={{ textAlign: 'center', fontStyle: 'italic', fontSize: '11px', padding: '2px' }}>
+            <td style={{ borderBottom: '1px solid #111', textAlign: 'center', fontStyle: 'italic', fontSize: '11px', padding: '2px' }}>
               No. CARF : {expense.document_number}
             </td>
+          </tr>
+          <tr>
+            <td style={{ height: '14px' }}></td>
           </tr>
         </tbody>
       </table>
@@ -598,7 +601,7 @@ function CoverPreview({ data }) {
         </table>
 
         {/* Center Pengajuan Number */}
-        <div style={{ fontSize: '12px', fontWeight: 'bold' }}>
+        <div style={{ fontSize: '11px' }}>
           Pengajuan No. {cleanSeq}
         </div>
 
@@ -747,36 +750,36 @@ function CoverPreview({ data }) {
           <tr>
             {/* Transfer To */}
             <td style={{ border: '1px solid #111', verticalAlign: 'top', padding: '4px', width: '33.3%' }}>
-              <div style={{ textAlign: 'center', fontWeight: 'bold', marginBottom: '8px' }}>ADD<br/>Transfer To</div>
+              <div style={{ textAlign: 'center', fontWeight: 'bold', marginBottom: '12px', marginTop: '4px' }}>Transfer To</div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
                 <tbody>
                   <tr>
                     <td style={{ width: '60px', padding: '1px 0' }}>Nama</td>
                     <td style={{ width: '10px', padding: '1px 0' }}>:</td>
-                    <td style={{ padding: '1px 0' }}>{tech?.bank_account_owner_name || ''}</td>
+                    <td style={{ padding: '1px 0' }}></td>
                   </tr>
                   <tr>
                     <td style={{ padding: '1px 0' }}>No. Rek</td>
                     <td style={{ padding: '1px 0' }}>:</td>
-                    <td style={{ padding: '1px 0' }}>{tech?.bank_account_number || ''}</td>
+                    <td style={{ padding: '1px 0' }}></td>
                   </tr>
                   <tr>
                     <td style={{ padding: '1px 0' }}>Bank</td>
                     <td style={{ padding: '1px 0' }}>:</td>
-                    <td style={{ padding: '1px 0' }}>{tech?.bank_name || ''}</td>
+                    <td style={{ padding: '1px 0' }}></td>
                   </tr>
                 </tbody>
               </table>
             </td>
             {/* Retur to Company */}
             <td style={{ border: '1px solid #111', verticalAlign: 'top', padding: '4px', width: '33.3%', textAlign: 'center' }}>
-              <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>Retur to Company paid to :</div>
-              <div style={{ fontSize: '10px', fontWeight: 'bold', marginBottom: '2px' }}>MANDIRI 124 000 519 6192</div>
-              <div style={{ fontSize: '10px', fontWeight: 'bold' }}>PT MAHAGA PRATAMA</div>
+              <div style={{ fontWeight: 'bold', marginTop: '4px' }}>Retur to Company paid to :</div>
+              <div style={{ fontSize: '10px', marginTop: '4px' }}>MANDIRI 124 000 519 6192</div>
+              <div style={{ fontSize: '10px', marginTop: '28px' }}>PT MAHAGA PRATAMA</div>
             </td>
             {/* Distribusi Cost */}
             <td style={{ border: '1px solid #111', verticalAlign: 'top', padding: '0', width: '33.3%' }}>
-              <div style={{ fontWeight: 'bold', textAlign: 'center', padding: '2px', borderBottom: '1px solid #111' }}>
+              <div style={{ fontWeight: 'bold', textAlign: 'center', padding: '4px', borderBottom: '1px solid #111' }}>
                 Distribusi Cost
               </div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
