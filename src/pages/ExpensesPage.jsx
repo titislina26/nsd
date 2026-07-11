@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Trash2, Edit, Filter, ChevronDown, FileText } from 'lucide-react'
 import useAppStore from '@/store/useAppStore'
@@ -18,6 +18,14 @@ export default function ExpensesPage() {
   const [editingExpense, setEditingExpense] = useState(null)
   const [statusDropdown, setStatusDropdown] = useState(null)
   const [selectedIds, setSelectedIds] = useState([])
+
+  // Cleanup orphaned selected IDs when items are deleted
+  useEffect(() => {
+    setSelectedIds(prev => {
+      const validIds = prev.filter(id => carfExpenses.some(e => e.id === id))
+      return validIds.length === prev.length ? prev : validIds
+    })
+  }, [carfExpenses])
 
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return
@@ -230,6 +238,17 @@ export default function ExpensesPage() {
                       <td style={{ display: 'flex', gap: 'var(--spacing-1)' }}>
                         <button
                           className="btn btn--ghost btn--icon"
+                          onClick={() => {
+                            setEditingExpense(exp)
+                            setShowAddDialog(true)
+                          }}
+                          title="Edit"
+                          style={{ color: 'var(--color-primary)' }}
+                        >
+                          <Edit size={14} />
+                        </button>
+                        <button
+                          className="btn btn--ghost btn--icon"
                           onClick={() => navigate('/documents', { state: { selectedExpenseId: exp.id } })}
                           title="Cetak Kuitansi & Cover"
                           style={{ color: 'var(--color-text-secondary)' }}
@@ -262,17 +281,34 @@ export default function ExpensesPage() {
 
       {/* Add Dialog */}
       {showAddDialog && (
-        <AddExpenseDialog onClose={() => setShowAddDialog(false)} />
+        <AddExpenseDialog 
+          expenseToEdit={editingExpense} 
+          onClose={() => {
+            setShowAddDialog(false)
+            setEditingExpense(null)
+          }} 
+        />
       )}
     </div>
   )
 }
 
-function AddExpenseDialog({ onClose }) {
-  const { addExpense, technicians, addToast } = useAppStore()
+function AddExpenseDialog({ expenseToEdit, onClose }) {
+  const { addExpense, updateExpense, technicians, addToast } = useAppStore()
   const navigate = useNavigate()
   const [isSaving, setIsSaving] = useState(false)
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(expenseToEdit ? {
+    document_number: expenseToEdit.document_number || '',
+    pengajuan_number: expenseToEdit.pengajuan_number || '',
+    request_date: expenseToEdit.request_date ? new Date(expenseToEdit.request_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    requestor_name: expenseToEdit.requestor_name || '',
+    technician_name: expenseToEdit.technician_name || '',
+    technician_id: expenseToEdit.technician_id || '',
+    expense_category: expenseToEdit.expense_category || '',
+    description: expenseToEdit.description || '',
+    description_other: expenseToEdit.description_other || '',
+    amount: expenseToEdit.amount ? formatRupiah(expenseToEdit.amount) : '',
+  } : {
     document_number: '',
     pengajuan_number: '',
     request_date: new Date().toISOString().split('T')[0],
@@ -298,13 +334,25 @@ function AddExpenseDialog({ onClose }) {
     setIsSaving(true)
     
     try {
-      const newExpense = await addExpense({
+      const payload = {
         ...form,
-        amount: parseFloat(form.amount.replace(/\D/g, '')) || 0,
-      })
-      addToast({ title: 'Data CARF berhasil ditambahkan', variant: 'success' })
+        amount: parseFloat(form.amount.toString().replace(/\D/g, '')) || 0,
+      }
+      
+      let savedExpense;
+      if (expenseToEdit) {
+        savedExpense = await updateExpense(expenseToEdit.id, payload)
+        addToast({ title: 'Data CARF berhasil diupdate', variant: 'success' })
+      } else {
+        savedExpense = await addExpense(payload)
+        addToast({ title: 'Data CARF berhasil ditambahkan', variant: 'success' })
+      }
+      
       onClose()
-      navigate('/documents', { state: { selectedExpenseId: newExpense.id } })
+      
+      if (!expenseToEdit) {
+        navigate('/documents', { state: { selectedExpenseId: savedExpense.id } })
+      }
     } catch (err) {
       // Toast error is handled inside the store
     } finally {
@@ -316,7 +364,7 @@ function AddExpenseDialog({ onClose }) {
     <div className="dialog-overlay" onClick={onClose}>
       <div className="dialog dialog--lg" onClick={e => e.stopPropagation()}>
         <div className="dialog__header">
-          <h2 className="dialog__title">Tambah Data CARF</h2>
+          <h2 className="dialog__title">{expenseToEdit ? 'Edit Data CARF' : 'Tambah Data CARF'}</h2>
           <button className="dialog__close" onClick={onClose}>✕</button>
         </div>
 
@@ -437,9 +485,11 @@ function AddExpenseDialog({ onClose }) {
           </div>
 
           <div className="dialog__footer">
-            <button type="button" className="btn btn--ghost" onClick={onClose} disabled={isSaving}>Batal</button>
+            <button type="button" className="btn btn--outline" onClick={onClose} disabled={isSaving}>
+              Batal
+            </button>
             <button type="submit" className="btn btn--primary" disabled={isSaving}>
-              {isSaving ? 'Menyimpan...' : 'Simpan'}
+              {isSaving ? 'Menyimpan...' : (expenseToEdit ? 'Update' : 'Simpan')}
             </button>
           </div>
         </form>
