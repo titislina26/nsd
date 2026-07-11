@@ -211,6 +211,7 @@ a:hover {
   flex: 1;
   margin-left: var(--sidebar-width);
   min-height: 100vh;
+  min-width: 0;
   transition: margin-left var(--transition-slow);
   display: flex;
   flex-direction: column;
@@ -221,6 +222,7 @@ a:hover {
   padding: var(--spacing-8);
   max-width: 1400px;
   width: 100%;
+  min-width: 0;
 }
 
 /* ── Sidebar ── */
