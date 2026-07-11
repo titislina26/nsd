@@ -193,10 +193,15 @@ const extractCity = (desc) => {
   if (match) {
     const rawCity = match[1].trim()
     const words = rawCity.split(/\s+/)
-    const cleanWords = words.slice(0, 2).map(w => {
-      return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
-    })
-    return cleanWords.join(' ')
+    const stopWords = ['teknisi', 'oleh', 'untuk', 'jasa', 'transport', 'dengan', 'dan', 'yg', 'yang', 'pic']
+    const resultWords = []
+    
+    for (let i = 0; i < Math.min(2, words.length); i++) {
+      const w = words[i].toLowerCase()
+      if (stopWords.includes(w)) break
+      resultWords.push(words[i].charAt(0).toUpperCase() + words[i].slice(1).toLowerCase())
+    }
+    return resultWords.join(' ')
   }
   return ''
 }
