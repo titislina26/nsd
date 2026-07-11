@@ -684,7 +684,7 @@ function CoverPreview({ data }) {
                 <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>
                   {formatRawNumber(expense.amount - transportAmount)}
                 </td>
-                <td style={{ border: '1px solid #111', padding: '6px' }}>{splitCategory(expense.expense_category).part1}</td>
+                <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>{splitCategory(expense.expense_category).part1}</td>
               </tr>
               <tr>
                 <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center', height: '32px' }}>2</td>
@@ -693,7 +693,7 @@ function CoverPreview({ data }) {
                 <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>
                   {formatRawNumber(transportAmount)}
                 </td>
-                <td style={{ border: '1px solid #111', padding: '6px' }}>{splitCategory(expense.expense_category).part2}</td>
+                <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>{splitCategory(expense.expense_category).part2}</td>
               </tr>
             </>
           ) : (
@@ -705,7 +705,7 @@ function CoverPreview({ data }) {
                 <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>
                   {formatRawNumber(expense.amount)}
                 </td>
-                <td style={{ border: '1px solid #111', padding: '6px' }}>{expense.expense_category || ''}</td>
+                <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>{expense.expense_category || ''}</td>
               </tr>
               {/* Dummy Empty Row */}
               <tr>
