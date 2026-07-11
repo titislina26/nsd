@@ -544,10 +544,9 @@ function CoverPreview({ data }) {
   return (
     <div style={{
       background: 'white',
-      color: '#1a1a1a',
+      color: '#000',
       padding: '8px 16px',
-      borderRadius: 'var(--radius-lg)',
-      fontFamily: '"Helvetica Neue", Arial, sans-serif',
+      fontFamily: '"Arial", sans-serif',
       fontSize: '11px',
       lineHeight: '1.3',
       maxWidth: '1020px',
@@ -555,107 +554,66 @@ function CoverPreview({ data }) {
       boxSizing: 'border-box'
     }}>
       {/* Header Grid: Logo & Title Table */}
-      <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '8px' }}>
-        {/* Logo */}
-        <img
-          src="/logo-mahaga.png"
-          alt="Logo Mahaga"
-          style={{
-            width: '80px',
-            height: 'auto',
-            maxHeight: '60px',
-            objectFit: 'contain',
-            flexShrink: 0
-          }}
-        />
-
-        {/* Title Block */}
-        <div style={{ flex: 1 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #111' }}>
-            <tbody>
-              <tr>
-                <td style={{
-                  background: '#e0e0e0',
-                  border: '1px solid #111',
-                  textAlign: 'center',
-                  fontWeight: 'bold',
-                  fontSize: '12px',
-                  padding: '3px',
-                  letterSpacing: '0.5px'
-                }}>
-                  NON-TRAVEL EXPENSE REPORT - MAHAGA PRATAMA
-                </td>
-              </tr>
-              <tr>
-                <td style={{
-                  border: '1px solid #111',
-                  textAlign: 'center',
-                  fontSize: '10px',
-                  padding: '2px'
-                }}>
-                  Other
-                </td>
-              </tr>
-              <tr>
-                <td style={{
-                  border: '1px solid #111',
-                  textAlign: 'center',
-                  fontStyle: 'italic',
-                  fontSize: '10px',
-                  padding: '2px'
-                }}>
-                  No. CARF : {expense.document_number}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #111', marginBottom: '8px' }}>
+        <tbody>
+          <tr>
+            <td rowSpan={3} style={{ width: '120px', textAlign: 'center', borderRight: '1px solid #111', padding: '8px' }}>
+              <img src="/logo-mahaga.png" alt="Logo Mahaga" style={{ maxHeight: '70px', objectFit: 'contain' }} />
+            </td>
+            <td style={{ background: '#bfbfbf', borderBottom: '1px solid #111', textAlign: 'center', fontWeight: 'bold', fontSize: '12px', padding: '4px' }}>
+              NON-TRAVEL EXPENSE REPORT - MAHAGA PRATAMA
+            </td>
+          </tr>
+          <tr>
+            <td style={{ borderBottom: '1px solid #111', textAlign: 'center', fontSize: '11px', padding: '2px' }}>
+              Other
+            </td>
+          </tr>
+          <tr>
+            <td style={{ textAlign: 'center', fontStyle: 'italic', fontSize: '11px', padding: '2px' }}>
+              No. CARF : {expense.document_number}
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
       {/* Metadata Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr', gap: '16px', alignItems: 'center', marginBottom: '8px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
         {/* Left Info Table */}
-        <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #111' }}>
+        <table style={{ width: '32%', borderCollapse: 'collapse', border: '1px solid #111' }}>
           <tbody>
             <tr>
-              <td style={{ border: '1px solid #111', padding: '3px 6px', width: '70px' }}>Nama</td>
-              <td style={{ border: '1px solid #111', padding: '3px 6px', fontWeight: 'bold' }}>: {expense.requestor_name || user?.name || '-'}</td>
+              <td style={{ border: '1px solid #111', padding: '2px 4px', width: '60px' }}>Nama</td>
+              <td style={{ border: '1px solid #111', padding: '2px 4px' }}>: {expense.requestor_name || user?.name || '-'}</td>
             </tr>
             <tr>
-              <td style={{ border: '1px solid #111', padding: '3px 6px' }}>Dept</td>
-              <td style={{ border: '1px solid #111', padding: '3px 6px', fontWeight: 'bold' }}>: Mahaga</td>
+              <td style={{ border: '1px solid #111', padding: '2px 4px' }}>Dept</td>
+              <td style={{ border: '1px solid #111', padding: '2px 4px' }}>: Mahaga</td>
             </tr>
             <tr>
-              <td style={{ border: '1px solid #111', padding: '3px 6px' }}>Tanggal</td>
-              <td style={{ border: '1px solid #111', padding: '3px 6px', fontWeight: 'bold' }}>: {formatCompactDate(expense.request_date)}</td>
+              <td style={{ border: '1px solid #111', padding: '2px 4px' }}>Tanggal</td>
+              <td style={{ border: '1px solid #111', padding: '2px 4px' }}>: {formatCompactDate(expense.request_date)}</td>
             </tr>
           </tbody>
         </table>
 
         {/* Center Pengajuan Number */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '12px',
-          fontWeight: 'bold',
-          padding: '4px'
-        }}>
+        <div style={{ fontSize: '12px', fontWeight: 'bold' }}>
           Pengajuan No. {cleanSeq}
         </div>
 
         {/* Right Admin Verification Box */}
-        <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #111' }}>
+        <table style={{ width: '32%', borderCollapse: 'collapse', border: '1px solid #111' }}>
           <tbody>
             <tr>
-              <td style={{ border: '1px solid #111', padding: '3px 6px', width: '100px' }}>Tanggal Diterima</td>
-              <td style={{ border: '1px solid #111', padding: '3px 6px', width: '15px', textAlign: 'center' }}>:</td>
-              <td style={{ border: '1px solid #111', padding: '3px 6px' }}></td>
+              <td style={{ border: '1px solid #111', padding: '2px 4px', width: '100px' }}>Tanggal Diterima</td>
+              <td style={{ border: '1px solid #111', padding: '2px 4px', width: '10px', textAlign: 'center' }}>:</td>
+              <td style={{ border: '1px solid #111', padding: '2px 4px' }}></td>
             </tr>
             <tr>
-              <td style={{ border: '1px solid #111', padding: '3px 6px' }}>Paraf</td>
-              <td style={{ border: '1px solid #111', padding: '3px 6px', textAlign: 'center' }}>:</td>
-              <td style={{ border: '1px solid #111', padding: '3px 6px', color: 'red', textAlign: 'right', fontWeight: 'bold', fontSize: '9px' }}>
+              <td style={{ border: '1px solid #111', padding: '2px 4px' }}>Paraf</td>
+              <td style={{ border: '1px solid #111', padding: '2px 4px', textAlign: 'center' }}>:</td>
+              <td style={{ border: '1px solid #111', padding: '2px 4px', color: 'red', textAlign: 'right', fontSize: '9px' }}>
                 (Diisi oleh Admin)
               </td>
             </tr>
@@ -666,19 +624,19 @@ function CoverPreview({ data }) {
       {/* Realisasi Table */}
       <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #111', marginBottom: '8px' }}>
         <thead>
-          <tr style={{ background: '#e0e0e0', fontWeight: 'bold' }}>
-            <th style={{ border: '1px solid #111', width: '40px', padding: '4px', textAlign: 'center' }}>No</th>
-            <th style={{ border: '1px solid #111', width: '100px', padding: '4px', textAlign: 'center' }}>Tanggal</th>
-            <th style={{ border: '1px solid #111', padding: '4px', textAlign: 'center' }}>Uraian</th>
-            <th style={{ border: '1px solid #111', width: '150px', padding: '4px', textAlign: 'center' }}>Jumlah</th>
-            <th style={{ border: '1px solid #111', width: '180px', padding: '4px', textAlign: 'center' }}>Keterangan</th>
+          <tr style={{ background: '#bfbfbf', fontWeight: 'bold' }}>
+            <th style={{ border: '1px solid #111', width: '40px', padding: '6px', textAlign: 'center' }}>No</th>
+            <th style={{ border: '1px solid #111', width: '90px', padding: '6px', textAlign: 'center' }}>Tanggal</th>
+            <th style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>Uraian</th>
+            <th style={{ border: '1px solid #111', width: '130px', padding: '6px', textAlign: 'center' }}>Jumlah</th>
+            <th style={{ border: '1px solid #111', width: '100px', padding: '6px', textAlign: 'center' }}>Keterangan</th>
           </tr>
         </thead>
         <tbody>
           {hasSplit ? (
             <>
               <tr>
-                <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center', height: '32px' }}>1</td>
+                <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>1</td>
                 <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>{formatCompactDate(expense.request_date)}</td>
                 <td style={{ border: '1px solid #111', padding: '6px' }}>{cleanDescriptionForVoucher(expense.description, 'jasa')}</td>
                 <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>
@@ -687,7 +645,7 @@ function CoverPreview({ data }) {
                 <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>{splitCategory(expense.expense_category).part1}</td>
               </tr>
               <tr>
-                <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center', height: '32px' }}>2</td>
+                <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>2</td>
                 <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>{formatCompactDate(expense.request_date)}</td>
                 <td style={{ border: '1px solid #111', padding: '6px' }}>{cleanDescriptionForVoucher(expense.description, 'transport')}</td>
                 <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>
@@ -699,7 +657,7 @@ function CoverPreview({ data }) {
           ) : (
             <>
               <tr>
-                <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center', height: '32px' }}>1</td>
+                <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>1</td>
                 <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>{formatCompactDate(expense.request_date)}</td>
                 <td style={{ border: '1px solid #111', padding: '6px' }}>{expense.description}</td>
                 <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>
@@ -707,7 +665,6 @@ function CoverPreview({ data }) {
                 </td>
                 <td style={{ border: '1px solid #111', padding: '6px', textAlign: 'center' }}>{expense.expense_category || ''}</td>
               </tr>
-              {/* Dummy Empty Row */}
               <tr>
                 <td style={{ border: '1px solid #111', padding: '6px', height: '24px' }}></td>
                 <td style={{ border: '1px solid #111', padding: '6px' }}></td>
@@ -721,32 +678,31 @@ function CoverPreview({ data }) {
           <tr>
             <td colSpan={3} style={{
               border: '1px solid #111',
-              padding: '4px',
+              padding: '6px',
               textAlign: 'center',
               fontWeight: 'bold',
-              textTransform: 'uppercase',
-              letterSpacing: '1px'
+              textTransform: 'uppercase'
             }}>
               REALISASI
             </td>
             <td colSpan={2} style={{ border: '1px solid #111', padding: '0' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', height: '100%' }}>
                 <tbody>
-                  <tr style={{ borderBottom: '1px solid #111' }}>
-                    <td style={{ padding: '3px 6px', fontWeight: 'bold', width: '150px', borderRight: '1px solid #111' }}>Advance Taken</td>
-                    <td style={{ padding: '3px 6px', textAlign: 'right', fontWeight: 'bold' }}>
-                      Rp{formatRawNumber(expense.amount)}
-                    </td>
-                  </tr>
-                  <tr style={{ borderBottom: '1px solid #111' }}>
-                    <td style={{ padding: '3px 6px', fontWeight: 'bold', width: '150px', borderRight: '1px solid #111' }}>Total Expense</td>
-                    <td style={{ padding: '3px 6px', textAlign: 'right', fontWeight: 'bold' }}>
+                  <tr>
+                    <td style={{ padding: '2px 4px', fontWeight: 'bold', width: '130px', borderBottom: '1px solid #111', borderRight: '1px solid #111' }}>Advance Taken</td>
+                    <td style={{ padding: '2px 4px', textAlign: 'right', fontWeight: 'bold', borderBottom: '1px solid #111' }}>
                       Rp{formatRawNumber(expense.amount)}
                     </td>
                   </tr>
                   <tr>
-                    <td style={{ padding: '3px 6px', fontWeight: 'bold', width: '150px', borderRight: '1px solid #111' }}>Balance / Retur / (Add)</td>
-                    <td style={{ padding: '3px 6px', textAlign: 'right', fontWeight: 'bold' }}>Rp0</td>
+                    <td style={{ padding: '2px 4px', fontWeight: 'bold', borderBottom: '1px solid #111', borderRight: '1px solid #111' }}>Total Expense</td>
+                    <td style={{ padding: '2px 4px', textAlign: 'right', fontWeight: 'bold', borderBottom: '1px solid #111' }}>
+                      Rp{formatRawNumber(expense.amount)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '2px 4px', fontWeight: 'bold', borderRight: '1px solid #111' }}>Balance / Retur / (Add)</td>
+                    <td style={{ padding: '2px 4px', textAlign: 'right', fontWeight: 'bold' }}>Rp0</td>
                   </tr>
                 </tbody>
               </table>
@@ -757,108 +713,99 @@ function CoverPreview({ data }) {
 
       {/* Approval Section Table */}
       <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #111', marginBottom: '8px', textAlign: 'center' }}>
-        <thead>
-          <tr style={{ background: '#f5f5f5', fontSize: '10px' }}>
-            <th style={{ border: '1px solid #111', padding: '3px', width: '16.6%' }}>Dibuat oleh,<br />User</th>
-            <th style={{ border: '1px solid #111', padding: '3px', width: '16.6%' }}>Disetujui oleh,<br />Atasan Langsung</th>
-            <th style={{ border: '1px solid #111', padding: '3px', width: '16.6%' }}>Diperiksa oleh,<br />Budget Admin</th>
-            <th style={{ border: '1px solid #111', padding: '3px', width: '16.6%' }}>Diperiksa oleh,<br />Kepala Divisi & Budget Holder</th>
-            <th style={{ border: '1px solid #111', padding: '3px', width: '16.6%' }}>Disetujui oleh,<br />Direktur*</th>
-            <th style={{ border: '1px solid #111', padding: '3px', width: '16.6%' }}>Disetujui oleh,<br />Direktur**</th>
-          </tr>
-        </thead>
         <tbody>
+          <tr style={{ fontSize: '10px' }}>
+            <td style={{ border: '1px solid #111', padding: '4px', width: '16.6%' }}>Dibuat oleh,<br />User</td>
+            <td style={{ border: '1px solid #111', padding: '4px', width: '16.6%' }}>Disetujui oleh,<br />Atasan Langsung</td>
+            <td style={{ border: '1px solid #111', padding: '4px', width: '16.6%' }}>Diperiksa oleh,<br />Budget Admin</td>
+            <td style={{ border: '1px solid #111', padding: '4px', width: '16.6%' }}>Diperiksa oleh,<br />Kepala Divisi & Budget Holder</td>
+            <td style={{ border: '1px solid #111', padding: '4px', width: '16.6%' }}>Disetujui oleh,<br />Direktur*</td>
+            <td style={{ border: '1px solid #111', padding: '4px', width: '16.6%' }}>Disetujui oleh,<br />Direktur**</td>
+          </tr>
           <tr>
-            <td style={{ border: '1px solid #111', height: '38px', verticalAlign: 'bottom', paddingBottom: '3px' }}>
-              <div style={{ fontStyle: 'italic' }}>{expense.technician_name || tech?.name || '________________'}</div>
-            </td>
-            <td style={{ border: '1px solid #111', height: '38px', verticalAlign: 'bottom', paddingBottom: '3px' }}>
-              <div style={{ fontStyle: 'italic' }}>Ardi Ahmad Syauki</div>
-            </td>
-            <td style={{ border: '1px solid #111', height: '38px', verticalAlign: 'bottom', paddingBottom: '3px' }}>
-              <div style={{ fontStyle: 'italic', color: '#888' }}></div>
-            </td>
-            <td style={{ border: '1px solid #111', height: '38px', verticalAlign: 'bottom', paddingBottom: '3px' }}>
-              <div style={{ fontStyle: 'italic' }}>Adi Wibowo</div>
-            </td>
-            <td style={{ border: '1px solid #111', height: '38px', verticalAlign: 'bottom', paddingBottom: '3px' }}>
-              <div style={{ fontStyle: 'italic', color: '#888' }}></div>
-            </td>
-            <td style={{ border: '1px solid #111', height: '38px', verticalAlign: 'bottom', paddingBottom: '3px' }}>
-              <div style={{ fontStyle: 'italic', color: '#888' }}></div>
-            </td>
+            <td style={{ border: '1px solid #111', height: '60px' }}></td>
+            <td style={{ border: '1px solid #111', height: '60px' }}></td>
+            <td style={{ border: '1px solid #111', height: '60px' }}></td>
+            <td style={{ border: '1px solid #111', height: '60px' }}></td>
+            <td style={{ border: '1px solid #111', height: '60px' }}></td>
+            <td style={{ border: '1px solid #111', height: '60px' }}></td>
+          </tr>
+          <tr>
+            <td style={{ border: '1px solid #111', padding: '4px', fontStyle: 'italic' }}>{expense.requestor_name || user?.name || ''}</td>
+            <td style={{ border: '1px solid #111', padding: '4px', fontStyle: 'italic' }}>Ardi Ahmad Syauki</td>
+            <td style={{ border: '1px solid #111', padding: '4px', fontStyle: 'italic' }}></td>
+            <td style={{ border: '1px solid #111', padding: '4px', fontStyle: 'italic' }}>Adi Wibowo</td>
+            <td style={{ border: '1px solid #111', padding: '4px', fontStyle: 'italic' }}></td>
+            <td style={{ border: '1px solid #111', padding: '4px', fontStyle: 'italic' }}></td>
           </tr>
         </tbody>
       </table>
 
       {/* Footer Details: Transfer to, Return to, Distribusi Cost */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr', gap: '16px', marginBottom: '4px' }}>
-        {/* Transfer To */}
-        <div style={{ border: '1px solid #111', boxSizing: 'border-box' }}>
-          <div style={{ borderBottom: '1px solid #111', padding: '3px', fontWeight: 'bold', textAlign: 'center', background: '#f5f5f5' }}>
-            Transfer To
-          </div>
-          <div style={{ padding: '6px' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
-              <tbody>
-                <tr>
-                  <td style={{ width: '60px', padding: '1px 0' }}>Nama</td>
-                  <td style={{ padding: '1px 0' }}>: {tech?.bank_account_owner_name || ''}</td>
-                </tr>
-                <tr>
-                  <td style={{ padding: '1px 0' }}>No. Rek</td>
-                  <td style={{ padding: '1px 0', fontFamily: 'monospace' }}>: {tech?.bank_account_number || ''}</td>
-                </tr>
-                <tr>
-                  <td style={{ padding: '1px 0' }}>Bank</td>
-                  <td style={{ padding: '1px 0' }}>: {tech?.bank_name || ''}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Retur to Company */}
-        <div style={{ border: '1px solid #111', boxSizing: 'border-box', textAlign: 'center' }}>
-          <div style={{ borderBottom: '1px solid #111', padding: '3px', fontWeight: 'bold', background: '#f5f5f5' }}>
-            Retur to Company paid to :
-          </div>
-          <div style={{ padding: '6px 8px' }}>
-            <div style={{ fontSize: '10px', fontWeight: 'bold', margin: '2px 0' }}>MANDIRI 124 000 519 6192</div>
-            <div style={{ fontSize: '10px', fontWeight: 'bold' }}>PT MAHAGA PRATAMA</div>
-          </div>
-        </div>
-
-        {/* Distribusi Cost */}
-        <div style={{ border: '1px solid #111', boxSizing: 'border-box' }}>
-          <div style={{ borderBottom: '1px solid #111', padding: '3px', fontWeight: 'bold', textAlign: 'center', background: '#f5f5f5' }}>
-            Distribusi Cost
-          </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9px' }}>
-            <tbody>
-              <tr style={{ borderBottom: '1px solid #111' }}>
-                <td style={{ padding: '2px 4px', width: '80px', fontWeight: 'bold', background: '#f5f5f5', borderRight: '1px solid #111' }}>Budget Dept</td>
-                <td style={{ padding: '2px 4px' }}>:</td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid #111' }}>
-                <td style={{ padding: '2px 4px', fontWeight: 'bold', background: '#f5f5f5', borderRight: '1px solid #111' }}>License</td>
-                <td style={{ padding: '2px 4px' }}>:</td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid #111' }}>
-                <td style={{ padding: '2px 4px', fontWeight: 'bold', background: '#f5f5f5', borderRight: '1px solid #111' }}>Product</td>
-                <td style={{ padding: '2px 4px' }}>:</td>
-              </tr>
-              <tr>
-                <td style={{ padding: '2px 4px', fontWeight: 'bold', background: '#f5f5f5', borderRight: '1px solid #111' }}>Project</td>
-                <td style={{ padding: '2px 4px' }}>:</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #111', marginBottom: '4px' }}>
+        <tbody>
+          <tr>
+            {/* Transfer To */}
+            <td style={{ border: '1px solid #111', verticalAlign: 'top', padding: '4px', width: '33.3%' }}>
+              <div style={{ textAlign: 'center', fontWeight: 'bold', marginBottom: '8px' }}>ADD<br/>Transfer To</div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
+                <tbody>
+                  <tr>
+                    <td style={{ width: '60px', padding: '1px 0' }}>Nama</td>
+                    <td style={{ width: '10px', padding: '1px 0' }}>:</td>
+                    <td style={{ padding: '1px 0' }}>{tech?.bank_account_owner_name || ''}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '1px 0' }}>No. Rek</td>
+                    <td style={{ padding: '1px 0' }}>:</td>
+                    <td style={{ padding: '1px 0' }}>{tech?.bank_account_number || ''}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '1px 0' }}>Bank</td>
+                    <td style={{ padding: '1px 0' }}>:</td>
+                    <td style={{ padding: '1px 0' }}>{tech?.bank_name || ''}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+            {/* Retur to Company */}
+            <td style={{ border: '1px solid #111', verticalAlign: 'top', padding: '4px', width: '33.3%', textAlign: 'center' }}>
+              <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>Retur to Company paid to :</div>
+              <div style={{ fontSize: '10px', fontWeight: 'bold', marginBottom: '2px' }}>MANDIRI 124 000 519 6192</div>
+              <div style={{ fontSize: '10px', fontWeight: 'bold' }}>PT MAHAGA PRATAMA</div>
+            </td>
+            {/* Distribusi Cost */}
+            <td style={{ border: '1px solid #111', verticalAlign: 'top', padding: '0', width: '33.3%' }}>
+              <div style={{ fontWeight: 'bold', textAlign: 'center', padding: '2px', borderBottom: '1px solid #111' }}>
+                Distribusi Cost
+              </div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
+                <tbody>
+                  <tr>
+                    <td style={{ width: '80px', padding: '2px 4px', borderBottom: '1px solid #111', borderRight: '1px solid #111' }}>Budget Dept</td>
+                    <td style={{ padding: '2px 4px', borderBottom: '1px solid #111' }}>:</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '2px 4px', borderBottom: '1px solid #111', borderRight: '1px solid #111' }}>License</td>
+                    <td style={{ padding: '2px 4px', borderBottom: '1px solid #111' }}>:</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '2px 4px', borderBottom: '1px solid #111', borderRight: '1px solid #111' }}>Product</td>
+                    <td style={{ padding: '2px 4px', borderBottom: '1px solid #111' }}>:</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '2px 4px', borderRight: '1px solid #111' }}>Project</td>
+                    <td style={{ padding: '2px 4px' }}>:</td>
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
       {/* Bullet Notes (Blue Text) */}
-      <div style={{ color: '#1e3a8a', fontSize: '9px', lineHeight: '1.2', paddingLeft: '4px' }}>
+      <div style={{ color: '#0055cc', fontSize: '10px', lineHeight: '1.2' }}>
         <div>* Jika Total Expense di Atas 5 juta harus mendapat approval Kepala Divisi dan Direktur terkait</div>
         <div>Untuk Bukti bayar harus dalam bentukan nota resmi dengan logo dan stempel, bila tidak harus ada approval budget holder atau atasan langsung</div>
         <div>Setelah mengembalikan uang retur ke rekening PSN wajib menginformasikan ke accounting melalui email</div>
