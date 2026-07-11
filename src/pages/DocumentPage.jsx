@@ -292,10 +292,10 @@ function ReceiptPreview({ data }) {
       <div style={{
         background: 'white',
         border: '1px solid #bbb',
-        padding: '24px 32px 24px 32px',
+        padding: '16px 24px',
         width: '100%',
         maxWidth: '780px',
-        margin: '0 auto 24px auto',
+        margin: '0 auto 12px auto',
         boxSizing: 'border-box',
         position: 'relative',
         fontFamily: '"Helvetica Neue", Arial, sans-serif',
@@ -304,41 +304,41 @@ function ReceiptPreview({ data }) {
         lineHeight: '1.6'
       }}>
         {/* Fields list */}
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '16px' }}>
           <tbody>
             <tr>
-              <td style={{ width: '140px', fontWeight: 'bold', padding: '6px 0', verticalAlign: 'top' }}>No</td>
-              <td style={{ width: '15px', padding: '6px 0', verticalAlign: 'top' }}>:</td>
-              <td style={{ padding: '6px 0', verticalAlign: 'top' }}>{expense.document_number}</td>
+              <td style={{ width: '140px', fontWeight: 'bold', padding: '4px 0', verticalAlign: 'top' }}>No</td>
+              <td style={{ width: '15px', padding: '4px 0', verticalAlign: 'top' }}>:</td>
+              <td style={{ padding: '4px 0', verticalAlign: 'top' }}>{expense.document_number}</td>
             </tr>
             <tr>
-              <td style={{ fontWeight: 'bold', padding: '6px 0', verticalAlign: 'top' }}>Telah Terima Dari</td>
-              <td style={{ padding: '6px 0', verticalAlign: 'top' }}>:</td>
-              <td style={{ padding: '6px 0', verticalAlign: 'top' }}>PT Mahaga Pratama</td>
+              <td style={{ fontWeight: 'bold', padding: '4px 0', verticalAlign: 'top' }}>Telah Terima Dari</td>
+              <td style={{ padding: '4px 0', verticalAlign: 'top' }}>:</td>
+              <td style={{ padding: '4px 0', verticalAlign: 'top' }}>PT Mahaga Pratama</td>
             </tr>
             <tr>
-              <td style={{ fontWeight: 'bold', padding: '6px 0', verticalAlign: 'top' }}>Uang Sejumlah</td>
-              <td style={{ padding: '6px 0', verticalAlign: 'top' }}>:</td>
-              <td style={{ padding: '6px 0', verticalAlign: 'top', fontWeight: 'bold' }}>
+              <td style={{ fontWeight: 'bold', padding: '4px 0', verticalAlign: 'top' }}>Uang Sejumlah</td>
+              <td style={{ padding: '4px 0', verticalAlign: 'top' }}>:</td>
+              <td style={{ padding: '4px 0', verticalAlign: 'top', fontWeight: 'bold' }}>
                 {terbilangRupiah(amt)}
               </td>
             </tr>
             <tr>
-              <td style={{ fontWeight: 'bold', padding: '6px 0', verticalAlign: 'top' }}>Untuk Pembayaran</td>
-              <td style={{ padding: '6px 0', verticalAlign: 'top' }}>:</td>
-              <td style={{ padding: '6px 0', verticalAlign: 'top' }}>
-                <div style={{ position: 'relative', width: '100%', minHeight: '84px', marginTop: '4px' }}>
+              <td style={{ fontWeight: 'bold', padding: '4px 0', verticalAlign: 'top' }}>Untuk Pembayaran</td>
+              <td style={{ padding: '4px 0', verticalAlign: 'top' }}>:</td>
+              <td style={{ padding: '4px 0', verticalAlign: 'top' }}>
+                <div style={{ position: 'relative', width: '100%', minHeight: '76px', marginTop: '4px' }}>
                   {/* Line 1 */}
-                  <div style={{ position: 'absolute', left: 0, right: 0, top: '22px', borderBottom: '1px solid #999' }} />
+                  <div style={{ position: 'absolute', left: 0, right: 0, top: '20px', borderBottom: '1px solid #999' }} />
                   {/* Line 2 */}
-                  <div style={{ position: 'absolute', left: 0, right: 0, top: '50px', borderBottom: '1px solid #999' }} />
+                  <div style={{ position: 'absolute', left: 0, right: 0, top: '44px', borderBottom: '1px solid #999' }} />
                   {/* Line 3 */}
-                  <div style={{ position: 'absolute', left: 0, right: 0, top: '78px', borderBottom: '1px solid #999' }} />
+                  <div style={{ position: 'absolute', left: 0, right: 0, top: '68px', borderBottom: '1px solid #999' }} />
                   
                   <div style={{ 
                     position: 'relative', 
                     zIndex: 1, 
-                    lineHeight: '28px', 
+                    lineHeight: '24px', 
                     fontSize: '12px',
                     color: '#000',
                     paddingTop: '2px',
@@ -353,7 +353,7 @@ function ReceiptPreview({ data }) {
         </table>
 
         {/* Bottom Section: Amount & Signature */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', alignItems: 'end', marginTop: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', alignItems: 'end', marginTop: '16px' }}>
           {/* Amount Box */}
           <div>
             <div style={{
@@ -374,7 +374,7 @@ function ReceiptPreview({ data }) {
             <div style={{ fontSize: '12px', paddingBottom: '4px' }}>
               {city ? `${city}, ` : ''}{formatIndonesianDate(expense.disbursement_date || expense.request_date)}
             </div>
-            <div style={{ borderBottom: '1px solid #000', marginBottom: '95px' }} />
+            <div style={{ borderBottom: '1px solid #000', marginBottom: '60px' }} />
             <div style={{ fontWeight: 'bold', fontSize: '12px' }}>
               {expense.technician_name || tech?.name || 'Penerima'}
             </div>
@@ -386,16 +386,16 @@ function ReceiptPreview({ data }) {
   }
 
   return (
-    <div style={{ background: 'white', padding: '16px 0' }}>
+    <div style={{ background: 'white', padding: '12px 0' }}>
       {/* Display KTP if uploaded, otherwise show helper / upload option */}
       {tech ? (
         tech.ktp_image_url ? (
-          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '12px' }}>
             <img
               src={tech.ktp_image_url}
               alt="KTP Teknisi"
               style={{
-                maxWidth: '360px',
+                maxWidth: '300px',
                 borderRadius: '8px',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                 border: '1px solid #ddd'
