@@ -55,4 +55,67 @@ Jika database Anda kosong dan Anda ingin mengisi data awal (seperti data user de
 cd server
 npm run seed
 ```
+## Entity Relationship Diagram (ERD)
+
+```mermaid
+erDiagram
+    USERS ||--o{ CARF_EXPENSES : "creates / requests"
+    TECHNICIANS ||--o{ CARF_EXPENSES : "assigned_to / recipient"
+    TASKS ||--o{ CARF_EXPENSES : "related_to"
+
+    USERS {
+        text id PK
+        text name
+        text email UK
+        text role
+        text area
+        text password
+        text created_at
+    }
+
+    TECHNICIANS {
+        text id PK
+        text name
+        text ktp_number UK
+        text ktp_image_url
+        text bank_name
+        text bank_account_number
+        text bank_account_owner_name
+        integer is_third_party_account
+        text third_party_relation
+        text verification_status
+        text notes
+    }
+
+    TASKS {
+        text id PK
+        text task_type
+        text area
+        text start_date
+        text end_date
+        text description
+    }
+
+    CARF_EXPENSES {
+        text id PK
+        text document_number UK
+        text pengajuan_number
+        text request_date
+        text requestor_id FK
+        text requestor_name
+        text task_id FK
+        text technician_id FK
+        text technician_name
+        text division
+        text expense_category
+        text description
+        text description_other
+        real amount
+        text status_document
+        text status_disbursement
+        text disbursement_date
+        text transfer_receipt_url
+        text created_at
+    }
+```
 
