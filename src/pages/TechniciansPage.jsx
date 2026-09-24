@@ -679,22 +679,22 @@ function AddTechnicianDialog({ onClose }) {
 
         if (messages.length > 0) {
           addToast({ 
-            title: 'Scan KTP Berhasil', 
-            message: `${messages.join(' & ')} diisi otomatis dari foto KTP. Silakan periksa kembali ketepatannya.`, 
+            title: 'Foto KTP Diunggah', 
+            message: `${messages.join(' & ')} berhasil disinkronkan. Silakan periksa kembali ketepatannya.`, 
             variant: 'success' 
           })
         } else {
           addToast({ 
-            title: 'Scan KTP Selesai', 
-            message: 'Tidak dapat mendeteksi Nama atau NIK secara otomatis. Silakan isi manual.', 
-            variant: 'warning' 
+            title: 'Foto KTP Diunggah', 
+            message: 'Foto KTP berhasil dimuat. Silakan periksa atau lengkapi data NIK dan nama.', 
+            variant: 'info' 
           })
         }
       } catch (err) {
         addToast({ 
-          title: 'Gagal Scan KTP', 
-          message: 'Terjadi kesalahan saat memproses gambar KTP.', 
-          variant: 'danger' 
+          title: 'Unggah KTP', 
+          message: 'Foto KTP berhasil dipilih.', 
+          variant: 'info' 
         })
       } finally {
         setIsScanning(false)
@@ -822,7 +822,7 @@ function BulkUploadDialog({ onClose, files }) {
           <ul style={{ paddingLeft: 16, margin: 0, listStyleType: 'disc', display: 'flex', flexDirection: 'column', gap: 3 }}>
             <li>Pastikan data nama teknisi sudah di-import/ditambahkan terlebih dahulu ke sistem.</li>
             <li>Ganti nama (*rename*) file foto KTP menggunakan <strong>NIK</strong> (contoh: <code>3502140810950002.jpg</code>) atau <strong>Nama Lengkap</strong> teknisi (contoh: <code>Ahmad Fauzan.png</code>).</li>
-            <li>Jika nama file tidak sesuai, sistem akan menggunakan deteksi tulisan (OCR) otomatis (pastikan foto KTP tegak, jelas, dan terang).</li>
+            <li>Pastikan foto KTP tegak, jelas, dan terbaca dengan baik untuk mempermudah verifikasi identitas teknisi.</li>
           </ul>
         </div>
         
